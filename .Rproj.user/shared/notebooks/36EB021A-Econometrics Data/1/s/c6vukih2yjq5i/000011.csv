@@ -1,0 +1,9 @@
+"0","# yearly ts"
+"0","homicide_data |> "
+"0","  mutate(year = year(month)) |> "
+"0","  group_by(year) |> "
+"0","  summarise(homicides = sum(homicides), .groups = ""drop"") |> "
+"0","  as_tsibble(index = year) |> "
+"0","  autoplot()"
+"1","Plot variable not specified, automatically selected `.vars = homicides`
+"

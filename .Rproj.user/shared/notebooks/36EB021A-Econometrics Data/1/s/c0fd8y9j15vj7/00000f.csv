@@ -1,0 +1,2099 @@
+"0","library(tidyverse)"
+"2","Warning:"
+"2"," package ‘tidyverse’ was built under R version 4.4.2
+"
+"2","Warning:"
+"2"," package ‘tidyr’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘dplyr’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘lubridate’ was built under R version 4.4.3
+"
+"1","── [1mAttaching core tidyverse packages[22m ──────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.4     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+"
+"1","── [1mConflicts[22m ────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors
+"
+"0","library(fpp3)"
+"2","Warning:"
+"2"," package ‘fpp3’ was built under R version 4.4.3
+"
+"2","Registered S3 method overwritten by 'tsibble':
+  method               from 
+  as_tibble.grouped_df dplyr
+"
+"2","[37m── [1mAttaching packages[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────── fpp3 1.0.1 ──[39m
+"
+"2","[37m[32m✔[37m [34mtsibble    [37m 1.1.6     [32m✔[37m [34mfeasts     [37m 0.4.1
+[32m✔[37m [34mtsibbledata[37m 0.4.1     [32m✔[37m [34mfable      [37m 0.4.1[39m
+"
+"2","Warning:"
+"2"," package ‘tsibble’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘tsibbledata’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘feasts’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘fabletools’ was built under R version 4.4.3
+"
+"2","Warning:"
+"2"," package ‘fable’ was built under R version 4.4.3
+"
+"2","[37m── [1mConflicts[22m ───────────────────────────────────────────────────────────────────────────────────────────────────────────── fpp3_conflicts ──
+[31m✖[37m [34mlubridate[37m::[32mdate()[37m    masks [34mbase[37m::date()
+[31m✖[37m [34mdplyr[37m::[32mfilter()[37m      masks [34mstats[37m::filter()
+[31m✖[37m [34mtsibble[37m::[32mintersect()[37m masks [34mbase[37m::intersect()
+[31m✖[37m [34mtsibble[37m::[32minterval()[37m  masks [34mlubridate[37m::interval()
+[31m✖[37m [34mdplyr[37m::[32mlag()[37m         masks [34mstats[37m::lag()
+[31m✖[37m [34mtsibble[37m::[32msetdiff()[37m   masks [34mbase[37m::setdiff()
+[31m✖[37m [34mtsibble[37m::[32munion()[37m     masks [34mbase[37m::union()[39m
+"
+"0","files <- list.files(""downloads"", full.names = TRUE)"
+"0","homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())"
+"0",""
+"0","for(file_path in files){"
+"0","  temp_file <- read.csv(file_path)|> slice(-2) |> # slice off the second junk row"
+"0","    pivot_longer(cols = starts_with(""X""), names_to = ""month"", values_to = ""homicides"")|> # pivot"
+"0","    mutate(ori =  str_split(file_path, ""[/.]"")[[1]][2])|> # name ori column the ori from the filepath"
+"0","    mutate(month = my(sub(""^X"", """", month))) # month year conversion"
+"0","  # add in temp_file to total file"
+"0","  homicide_data <- bind_rows(homicide_data, temp_file)"
+"0","}"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0010000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0010100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0010200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0010400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0020800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0021300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0021500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0030900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0040000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0040100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0040200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0050000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0050100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0050200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0050300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0060000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0070000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0070100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0070200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0070500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0071000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0080000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0080100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0080200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0080300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0090000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0090100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0100000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0100200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0110000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0110200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0110500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0110700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0110800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0120000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0120200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0130000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0130500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0130800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0130900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0140600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0150000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0150100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0150200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0160000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0170000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0170100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0170200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0170500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0180600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0181000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0181100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0181300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0190900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0191000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0191100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0200000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0200200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0200600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0210000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0210100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0210200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0220000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0220100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0220400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0220500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0221000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0230000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0230100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0230400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0230500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0240000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0240100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0240200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0250000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0250100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0250300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0250400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0250800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0260000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0270900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0271900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0272900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0273000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0273100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0273200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0273400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0273700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0274000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0274300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0280000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0280100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0280200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0280300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0280500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0290000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0290100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0290200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0300000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0300100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0300200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0300300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0310700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0320000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0320200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0320300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0330000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0340000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0340100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0340200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0350000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0350100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0360000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0360100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0370000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0370100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0380000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0380100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0380200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0390000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0400600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0410000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0410100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0420000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0420100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0420200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0420300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0430000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0430100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0430200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0430300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0430700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0440000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0450000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0460000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0460100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0460200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0460700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0470000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0470100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0470200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0480000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0480100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0480200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0480300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0480400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0490000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0490100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0490200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0490300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0490500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0500000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0500100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0510000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0510100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0510200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0520000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0520100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0520200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0530000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0530100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0530200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0540000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0540100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0550000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0550100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0560800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0570000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0570100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0580000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0590000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0600000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0600100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0600200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0600300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0601300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0610000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0610100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0610200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0620900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0621000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0622000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0630000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0640000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0640100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0640200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0640400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0640700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0650700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0660000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0660100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0660200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0660300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0660400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0670000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0680000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0680100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0680200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0690900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0691800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0692100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0694400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0700900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0701000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0710000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0710100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0710200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0710400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0720600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0730800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0731100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0731200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0731400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0731600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0740000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0740100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0740200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0750000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0750600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0760000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0760100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0760200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0770000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0770100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0770200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0780000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0790000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0790100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0790200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0790300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0800000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0800100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0800200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0800300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0800400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0810000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0810100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0810200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0810300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0820800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0821100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0821400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0830000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0830100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0830200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0840000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0840100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0850000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0850100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0850200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0850300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0850400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0860000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0860100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0860400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0860600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0870000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0870100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MN0870200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNBCA0000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNCON0000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI00500.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI02300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI02400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI05000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI05100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI06000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNDI07000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNGED0000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0400.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0600.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0700.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0800.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP0900.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP1000.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP1100.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP1200.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP1300.csv'
+"
+"2","Warning in read.table(file = file, header = header, sep = sep, quote = quote,  :"
+"2","
+ "
+"2"," incomplete final line found by readTableHeader on 'downloads/MNMHP2000.csv'
+"
+"0","  "

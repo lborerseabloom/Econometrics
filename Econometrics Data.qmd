@@ -16,7 +16,6 @@ for(file_path in files){
   
 ```
 
-
 ```{r mapping}
 # bring in and join ai generated mappings, they look pretty good
 mapping <- read.csv("ai_mappings.csv") 
@@ -43,6 +42,17 @@ homicide_data |>
 homicide_data|> as_tsibble(index = month, key = c(series))|>
   summarise(homicides = sum(homicides), .groups = "drop") |>
   filter(year(month)>=2013)|>
+  autoplot()
+```
+```{r}
+# only modern data after 2013 crime reporting changes stl decomp
+homicide_data|> 
+  mutate(month = yearmonth(month))|>
+  as_tsibble(index = month, key = c(series))|>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  filter(year(month)>=2013)|>
+  model(stl = STL(homicides))|>
+  components()|>
   autoplot()
 ```
 

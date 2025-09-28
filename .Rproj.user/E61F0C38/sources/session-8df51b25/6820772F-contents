@@ -44,3 +44,15 @@ homicide_data|> as_tsibble(index = month, key = c(series))|>
   filter(year(month)>=2013)|>
   autoplot()
 ```
+```{r}
+# only modern data after 2013 crime reporting changes stl decomp
+homicide_data|> 
+  mutate(month = yearmonth(month))|>
+  as_tsibble(index = month, key = c(series))|>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  filter(year(month)>=2013)|>
+  model(stl = STL(homicides))|>
+  components()|>
+  autoplot()
+```
+
