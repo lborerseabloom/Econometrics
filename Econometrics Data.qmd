@@ -1,0 +1,48 @@
+```{r imports}
+library(tidyverse)
+library(fpp3)
+
+files <- list.files("downloads", full.names = TRUE)
+homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
+
+for(file_path in files){
+  temp_file <- read.csv(file_path)|> slice(-2) |> # slice off the second junk row
+    pivot_longer(cols = starts_with("X"), names_to = "month", values_to = "homicides")|> # pivot
+    mutate(ori =  str_split(file_path, "[/.]")[[1]][2])|> # name ori column the ori from the filepath
+    mutate(month = my(sub("^X", "", month))) # month year conversion
+  # add in temp_file to total file
+  homicide_data <- bind_rows(homicide_data, temp_file)
+}
+  
+```
+
+
+```{r mapping}
+# bring in and join ai generated mappings, they look pretty good
+mapping <- read.csv("ai_mappings.csv") 
+homicide_data <- left_join(homicide_data, mapping)|> 
+    distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
+    group_by(month)|>drop_na(homicides)|> ungroup() # drop na years
+```
+
+```{r}
+# total ts
+homicide_data|> as_tsibble(index = month, key = series)|>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  autoplot()
+
+# yearly ts
+homicide_data |> 
+  mutate(year = year(month)) |> 
+  group_by(year) |> 
+  summarise(homicides = sum(homicides), .groups = "drop") |> 
+  as_tsibble(index = year) |> 
+  autoplot()
+
+# only modern data after 2013 crime reporting changes
+homicide_data|> as_tsibble(index = month, key = c(series))|>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  filter(year(month)>=2013)|>
+  autoplot()
+```
+
