@@ -1,7 +1,0 @@
-"0","# only modern data after 2013 crime reporting changes"
-"0","homicide_data|> as_tsibble(index = month, key = c(series))|>"
-"0","  summarise(homicides = sum(homicides), .groups = ""drop"") |>"
-"0","  filter(year(month)>=2013)|>"
-"0","  autoplot()"
-"1","Plot variable not specified, automatically selected `.vars = homicides`
-"

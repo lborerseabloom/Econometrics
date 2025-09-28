@@ -1,6 +1,0 @@
-"0","# total ts"
-"0","homicide_data|> as_tsibble(index = month, key = series)|>"
-"0","  summarise(homicides = sum(homicides), .groups = ""drop"") |>"
-"0","  autoplot()"
-"1","Plot variable not specified, automatically selected `.vars = homicides`
-"

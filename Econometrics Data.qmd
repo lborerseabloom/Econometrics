@@ -1,5 +1,6 @@
 ```{r imports}
 library(tidyverse)
+library(tidycensus)
 library(fpp3)
 
 files <- list.files("downloads", full.names = TRUE)
@@ -19,7 +20,26 @@ for(file_path in files){
 ```{r mapping}
 # bring in and join ai generated mappings, they look pretty good
 mapping <- read.csv("ai_mappings.csv") 
-homicide_data <- left_join(homicide_data, mapping)|> 
+
+vars <- c(
+  median_household_income = "B19013_001",  # Median household income
+  total_population        = "B01003_001"   # Total population
+)
+
+# Pull ACS data for all variables at county level for MN
+acs_data <- get_acs(
+  geography = "county",
+  variables = vars,
+  state = "MN",
+  geometry = FALSE
+) |>
+  select(GEOID, variable, estimate) |>
+  mutate(GEOID = as.numeric(GEOID))|>
+  pivot_wider(names_from = variable, values_from = estimate)
+
+homicide_data <- homicide_data|>
+    left_join(mapping)|> # join in mapping variables
+    left_join(acs_data)|> # join to acs data by county
     distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
     group_by(month)|>drop_na(homicides)|> ungroup() # drop na years
 ```
@@ -43,8 +63,7 @@ homicide_data|> as_tsibble(index = month, key = c(series))|>
   summarise(homicides = sum(homicides), .groups = "drop") |>
   filter(year(month)>=2013)|>
   autoplot()
-```
-```{r}
+
 # only modern data after 2013 crime reporting changes stl decomp
 homicide_data|> 
   mutate(month = yearmonth(month))|>
@@ -55,4 +74,3 @@ homicide_data|>
   components()|>
   autoplot()
 ```
-
