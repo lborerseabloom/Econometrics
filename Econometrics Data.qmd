@@ -1,7 +1,13 @@
 ```{r imports}
+#| verbose: False
+#| warning: False
+
+
 library(tidyverse)
 library(tidycensus)
 library(fpp3)
+library(sf)
+library(patchwork)
 
 files <- list.files("downloads", full.names = TRUE)
 homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
@@ -16,40 +22,79 @@ for(file_path in files){
   homicide_data <- bind_rows(homicide_data, temp_file)
 }
 
-# bring in and join ai generated mappings, they look pretty good
-mapping <- read.csv("ai_mappings.csv") 
-
-vars <- c(
-  median_household_income = "B19013_001",  # Median household income
-  total_population        = "B01003_001"   # Total population
+vars_5 <- c(
+  median_household_income_5 = "B19013_001",  # Median household income
+  total_population_5        = "B01003_001"   # Total population
 )
 
+vars_1 <- c(
+  median_household_income_1 = "B19013_001",  # Median household income
+  total_population_1        = "B01003_001"   # Total population
+)
+
+
+### 5 year acs estimates ###
 # Pull ACS data for all variables at county level for MN
-years = c(2009, 2014, 2019, 2023)
-acs_ts <- map_df(years, function(y) {
+years = c(2009, 2014, 2019, 2023) # 2019-2023 acs5 overlaps the 2019 year and is not perfectly representative of the change
+acs_5yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",
     survey = "acs5",
-    variables = vars,
+    variables = vars_5,
     state = "MN",
     year = y,
     geometry = TRUE
   ) |>
     select(GEOID, variable, estimate) |>
     mutate(
-      GEOID = as.numeric(GEOID),
+      GEOID = as.character(GEOID),
       year = y
     ) |>
     pivot_wider(names_from = variable, values_from = estimate)
 })
 
+### 1 year acs estimates ###
 # 2020 estimates https://www.census.gov/programs-surveys/acs/data/experimental-data/1-year.html
+years = setdiff(2005:2024, 2020) # acs 1 with 2020 missing due to covid bias
+acs_1yr_ts <- map_df(years, function(y) {
+  get_acs(
+    geography = "county",
+    survey = "acs1",
+    variables = vars_1,
+    state = "MN",
+    year = y,
+    geometry = FALSE
+  ) |>
+    select(GEOID, variable, estimate) |>
+    mutate(
+      GEOID = as.character(GEOID),
+      year = y
+    ) |>
+    pivot_wider(names_from = variable, values_from = estimate)
+})
 
+# bring in and join ai generated mappings, they look pretty good
+mapping <- read.csv("ai_mappings.csv") |> mutate(GEOID = as.character(GEOID))
+
+# join in geometry with the mapping from the 5 year acs data
+county_geometry <- acs_5yr_ts |>
+  select(GEOID, geometry) |>
+  distinct(GEOID, .keep_all = TRUE)
+
+acs_5yr_ts <- acs_5yr_ts|> st_drop_geometry()
+
+mapping <- left_join(mapping, county_geometry)
+```
+
+```{r joining}
 homicide_data <- homicide_data|>
     left_join(mapping, by = join_by(ori), relationship = "many-to-many")|> # join in mapping variables
-    left_join(acs_ts, by = join_by(GEOID, year))|> # join to acs data by county
+    left_join(acs_1yr_ts, by = join_by(GEOID, year))|> # join to acs1 data by county and year
+    left_join(acs_5yr_ts, by = join_by(GEOID, year))|> # join to acs5 data by county and year
     distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
-    group_by(month)|>drop_na(homicides)|> ungroup() # drop na years
+    group_by(month)|>
+    drop_na(homicides)|> # drop na homicde years, primarily from smaller depts early on in the data
+    ungroup() 
 ```
 
 ```{r}
@@ -59,23 +104,98 @@ yearly_large_county_data <- homicide_data |>
   mutate(homicides = sum(homicides))|>
   select(-series, -month, -ori, -type)|>
   distinct()|>
-  drop_na(total_population) 
+  drop_na(county) # remove non county related homicides (Federal or state)
 
 # plot population trends
-ggplot(plot_data, aes(x = year, y = total_population, color = county, group = county)) +
+pop_1 <- yearly_large_county_data|>
+  drop_na(total_population_1)|>
+  ggplot(aes(x = year, y = total_population_1, color = county, group = county)) +
   geom_line() +
   geom_point(size = 1) +
   labs(
-    title = "Total Population by County over Time",
+    title = "Total Population by County over Time from ACS 1 estimates",
     x = "Year",
     y = "Total Population",
     color = "County"
   ) +
-  theme_minimal()
+  theme_minimal()+
+  theme(legend.position = "none")
+
+# plot population trends
+pop_5 <- yearly_large_county_data|>
+  drop_na(total_population_5)|>
+  ggplot(aes(x = year, y = total_population_5, color = county, group = county)) +
+  geom_point(size = 1) +
+  geom_line() +
+  labs(
+    title = "Total Population by County over Time from ACS 5 estimates",
+    x = "Year",
+    y = "Total Population",
+    color = "County"
+  ) +
+  theme_minimal()+
+  theme(legend.position = "none")
+
+pop_1 / pop_5
+  
 ```
 
 ```{r}
+# Pick a year to visualize
+year_to_plot <- 2023
 
+# Filter data for that year
+map_data <- yearly_large_county_data |>
+  filter(year == year_to_plot)|>
+  st_as_sf()
+
+# Plot homicides
+homicides_plot <- ggplot(map_data) +
+  geom_sf(aes(fill = homicides), color = "white") +  # white borders between counties
+  scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                       name = "homicides") +        # log scale for better contrast
+  labs(
+    title = paste("Homicides in", year_to_plot),
+    caption = "Source: FBI Crime data"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none")
+
+# Plot homicides
+pop5_plot <- map_data|>
+  drop_na(total_population_5)|>
+  ggplot() +
+  geom_sf(aes(fill = total_population_5), color = "white") +  # white borders between counties
+  scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                       name = "Total Population") +        # log scale for better contrast
+  labs(
+    title = paste("Population in", year_to_plot),
+    caption = "Source: ACS 5 estimates"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none")
+
+# Plot homicides
+pop1_plot <- map_data|>
+  drop_na(total_population_1)|>
+  ggplot() +
+  geom_sf(aes(fill = total_population_1), color = "white") +  # white borders between counties
+  scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                       name = "Total Population") +        # log scale for better contrast
+  labs(
+    title = paste("Population in", year_to_plot),
+    caption = "Source: ACS 1 estimates"
+  ) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none")
+
+pop5_plot + pop1_plot + homicides_plot
 ```
 
 
