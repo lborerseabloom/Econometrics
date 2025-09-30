@@ -95,107 +95,83 @@ homicide_data <- homicide_data|>
     group_by(month)|>
     drop_na(homicides)|> # drop na homicde years, primarily from smaller depts early on in the data
     ungroup() 
-```
 
-```{r}
 # collapse data into a form that is able to work with 1 year census data
 yearly_large_county_data <- homicide_data |>
   group_by(county, year)|>
   mutate(homicides = sum(homicides))|>
   select(-series, -month, -ori, -type)|>
   distinct()|>
-  drop_na(county) # remove non county related homicides (Federal or state)
-
-# plot population trends
-pop_1 <- yearly_large_county_data|>
-  drop_na(total_population_1)|>
-  ggplot(aes(x = year, y = total_population_1, color = county, group = county)) +
-  geom_line() +
-  geom_point(size = 1) +
-  labs(
-    title = "Total Population by County over Time from ACS 1 estimates",
-    x = "Year",
-    y = "Total Population",
-    color = "County"
-  ) +
-  theme_minimal()+
-  theme(legend.position = "none")
-
-# plot population trends
-pop_5 <- yearly_large_county_data|>
-  drop_na(total_population_5)|>
-  ggplot(aes(x = year, y = total_population_5, color = county, group = county)) +
-  geom_point(size = 1) +
-  geom_line() +
-  labs(
-    title = "Total Population by County over Time from ACS 5 estimates",
-    x = "Year",
-    y = "Total Population",
-    color = "County"
-  ) +
-  theme_minimal()+
-  theme(legend.position = "none")
-
-pop_1 / pop_5
-  
+  drop_na(county)|> # remove non county related homicides (Federal or state)
+  st_as_sf() # save as sf object for mapping
 ```
 
-```{r}
-# Pick a year to visualize
-year_to_plot <- 2023
+```{r plot_census_data_differences}
+#| warning: False
+  
+plot_census_data <- function(data, year_to_plot){
+  
+  # Filter data for that year
+  map_data <- data |>
+    filter(year == year_to_plot)
+  
+  # Plot homicides
+  homicides_plot <- ggplot(map_data) +
+    geom_sf(aes(fill = homicides), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "homicides") +        # log scale for better contrast
+    labs(
+      title = paste("     Homicides in", year_to_plot),
+      caption = "Source: FBI Crime data"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  # Plot homicides
+  pop5_plot <- map_data|>
+    drop_na(total_population_5)|>
+    ggplot() +
+    geom_sf(aes(fill = total_population_5), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "Total Population") +        # log scale for better contrast
+    labs(
+      title = paste("Population in", year_to_plot),
+      caption = "Source: ACS 5 estimates"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  # Plot homicides
+  pop1_plot <- map_data|>
+    drop_na(total_population_1)|>
+    ggplot() +
+    geom_sf(aes(fill = total_population_1), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "Total Population") +        # log scale for better contrast
+    labs(
+      title = paste("Population in", year_to_plot),
+      caption = "Source: ACS 1 estimates"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  return(pop5_plot + pop1_plot + homicides_plot)
+}
 
-# Filter data for that year
-map_data <- yearly_large_county_data |>
-  filter(year == year_to_plot)|>
-  st_as_sf()
+plot_census_data(yearly_large_county_data, 2005)
+plot_census_data(yearly_large_county_data, 2009)
+plot_census_data(yearly_large_county_data, 2014)
+plot_census_data(yearly_large_county_data, 2019)
+plot_census_data(yearly_large_county_data, 2023)
+plot_census_data(yearly_large_county_data, 2024)
 
-# Plot homicides
-homicides_plot <- ggplot(map_data) +
-  geom_sf(aes(fill = homicides), color = "white") +  # white borders between counties
-  scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                       name = "homicides") +        # log scale for better contrast
-  labs(
-    title = paste("Homicides in", year_to_plot),
-    caption = "Source: FBI Crime data"
-  ) +
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "none")
 
-# Plot homicides
-pop5_plot <- map_data|>
-  drop_na(total_population_5)|>
-  ggplot() +
-  geom_sf(aes(fill = total_population_5), color = "white") +  # white borders between counties
-  scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                       name = "Total Population") +        # log scale for better contrast
-  labs(
-    title = paste("Population in", year_to_plot),
-    caption = "Source: ACS 5 estimates"
-  ) +
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "none")
-
-# Plot homicides
-pop1_plot <- map_data|>
-  drop_na(total_population_1)|>
-  ggplot() +
-  geom_sf(aes(fill = total_population_1), color = "white") +  # white borders between counties
-  scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                       name = "Total Population") +        # log scale for better contrast
-  labs(
-    title = paste("Population in", year_to_plot),
-    caption = "Source: ACS 1 estimates"
-  ) +
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "none")
-
-pop5_plot + pop1_plot + homicides_plot
 ```
 
 
