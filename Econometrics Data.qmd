@@ -10,14 +10,12 @@ for(file_path in files){
   temp_file <- read.csv(file_path)|> slice(-2) |> # slice off the second junk row
     pivot_longer(cols = starts_with("X"), names_to = "month", values_to = "homicides")|> # pivot
     mutate(ori =  str_split(file_path, "[/.]")[[1]][2])|> # name ori column the ori from the filepath
-    mutate(month = my(sub("^X", "", month))) # month year conversion
+    mutate(month = my(sub("^X", "", month)))|> # month year conversion
+    mutate(year = year(month)) # year column
   # add in temp_file to total file
   homicide_data <- bind_rows(homicide_data, temp_file)
 }
-  
-```
 
-```{r mapping}
 # bring in and join ai generated mappings, they look pretty good
 mapping <- read.csv("ai_mappings.csv") 
 
@@ -27,22 +25,59 @@ vars <- c(
 )
 
 # Pull ACS data for all variables at county level for MN
-acs_data <- get_acs(
-  geography = "county",
-  variables = vars,
-  state = "MN",
-  geometry = FALSE
-) |>
-  select(GEOID, variable, estimate) |>
-  mutate(GEOID = as.numeric(GEOID))|>
-  pivot_wider(names_from = variable, values_from = estimate)
+years = c(2009, 2014, 2019, 2023)
+acs_ts <- map_df(years, function(y) {
+  get_acs(
+    geography = "county",
+    survey = "acs5",
+    variables = vars,
+    state = "MN",
+    year = y,
+    geometry = TRUE
+  ) |>
+    select(GEOID, variable, estimate) |>
+    mutate(
+      GEOID = as.numeric(GEOID),
+      year = y
+    ) |>
+    pivot_wider(names_from = variable, values_from = estimate)
+})
+
+# 2020 estimates https://www.census.gov/programs-surveys/acs/data/experimental-data/1-year.html
 
 homicide_data <- homicide_data|>
-    left_join(mapping)|> # join in mapping variables
-    left_join(acs_data)|> # join to acs data by county
+    left_join(mapping, by = join_by(ori), relationship = "many-to-many")|> # join in mapping variables
+    left_join(acs_ts, by = join_by(GEOID, year))|> # join to acs data by county
     distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
     group_by(month)|>drop_na(homicides)|> ungroup() # drop na years
 ```
+
+```{r}
+# collapse data into a form that is able to work with 1 year census data
+yearly_large_county_data <- homicide_data |>
+  group_by(county, year)|>
+  mutate(homicides = sum(homicides))|>
+  select(-series, -month, -ori, -type)|>
+  distinct()|>
+  drop_na(total_population) 
+
+# plot population trends
+ggplot(plot_data, aes(x = year, y = total_population, color = county, group = county)) +
+  geom_line() +
+  geom_point(size = 1) +
+  labs(
+    title = "Total Population by County over Time",
+    x = "Year",
+    y = "Total Population",
+    color = "County"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+
+```
+
 
 ```{r}
 # total ts
@@ -74,3 +109,4 @@ homicide_data|>
   components()|>
   autoplot()
 ```
+
