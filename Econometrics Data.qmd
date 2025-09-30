@@ -8,6 +8,7 @@ library(tidycensus)
 library(fpp3)
 library(sf)
 library(patchwork)
+library(gganimate)
 
 files <- list.files("downloads", full.names = TRUE)
 homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
@@ -30,6 +31,10 @@ vars_5 <- c(
 vars_1 <- c(
   median_household_income_1 = "B19013_001",  # Median household income
   total_population_1        = "B01003_001"   # Total population
+)
+
+vars_dec <- c(
+  total_population_dec      = "P1_001N"
 )
 
 
@@ -73,6 +78,27 @@ acs_1yr_ts <- map_df(years, function(y) {
     pivot_wider(names_from = variable, values_from = estimate)
 })
 
+# decennial true counts from April 1 2020 to replace missing year of 2020 acs1 data
+# wont have other variables, but does have TRUE pop
+decennial_pop <- get_decennial(
+  geography = "county",
+  variables = vars_dec,   
+  year = 2020,
+  geometry = FALSE,
+  state = "MN"
+)|>
+  select(GEOID, variable, value) |>
+  mutate(
+    GEOID = as.character(GEOID),
+    year = 2020
+  ) |>
+  pivot_wider(names_from = variable, values_from = value)
+
+acs_1yr_ts <- bind_rows(acs_1yr_ts, 
+                        decennial_pop|>rename(total_population_1 = total_population_dec))
+
+
+
 # bring in and join ai generated mappings, they look pretty good
 mapping <- read.csv("ai_mappings.csv") |> mutate(GEOID = as.character(GEOID))
 
@@ -106,13 +132,66 @@ yearly_large_county_data <- homicide_data |>
   st_as_sf() # save as sf object for mapping
 ```
 
-```{r plot_census_data_differences}
+```{r homicides_time_series}
+# Monthly totals
+monthly_ts <- homicide_data |>
+  group_by(month) |>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  mutate(type = "Monthly")  # Add type for plotting
+
+# Yearly totals
+yearly_ts <- homicide_data |>
+  mutate(year = year(month)) |>
+  group_by(year) |>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  mutate(
+    month = as.Date(paste0(year, "-01-01")),  # tsibble yearmonth
+    type = "Yearly"
+  ) |>
+  select(month, homicides, type)
+
+# plotting df
+combined_ts <- bind_rows(monthly_ts, yearly_ts)
+
+# show the reasons for using yearly data due to how monthly is reported
+ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
+  geom_line(size = 1) +
+  geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
+  scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
+  theme_minimal() +
+  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")
+
+yearly_large_county_data|>
+  st_drop_geometry()|>
+  drop_na(total_population_1, homicides)|>
+  group_by(year)|>
+  reframe(homicides_pc = sum(homicides) / sum(total_population_1))|>
+  ggplot(aes(x = year, y = homicides_pc))+
+  geom_line(size = 1)+
+  geom_point()+
+  theme_minimal()+
+  labs(title = "Minnesota Homicides per Capita Over Time", x = "Date", y = "Homicides per Capita")
+
+
+
+# stl decomp for seasonality, not too useful if doing yearly data
+# homicide_data|> 
+#   mutate(month = yearmonth(month))|>
+#   as_tsibble(index = month, key = c(series))|>
+#   summarise(homicides = sum(homicides), .groups = "drop") |>
+#   filter(year(month)>=2013)|>
+#   model(stl = STL(homicides))|>
+#   components()|>
+#   autoplot()+
+#     theme_minimal()
+```
+
+```{r homicides_and_pop_spatial_time_series}
 #| warning: False
   
-plot_census_data <- function(data, year_to_plot){
+plot_census_data <- function(year_to_plot){
   
-  # Filter data for that year
-  map_data <- data |>
+  map_data <- yearly_large_county_data|>
     filter(year == year_to_plot)
   
   # Plot homicides
@@ -129,7 +208,7 @@ plot_census_data <- function(data, year_to_plot){
           axis.ticks = element_blank(),
           legend.position = "none")
   
-  # Plot homicides
+  # Plot acs 5 pop
   pop5_plot <- map_data|>
     drop_na(total_population_5)|>
     ggplot() +
@@ -145,7 +224,7 @@ plot_census_data <- function(data, year_to_plot){
           axis.ticks = element_blank(),
           legend.position = "none")
   
-  # Plot homicides
+  # Plot acs 1 pop
   pop1_plot <- map_data|>
     drop_na(total_population_1)|>
     ggplot() +
@@ -164,45 +243,36 @@ plot_census_data <- function(data, year_to_plot){
   return(pop5_plot + pop1_plot + homicides_plot)
 }
 
-plot_census_data(yearly_large_county_data, 2005)
-plot_census_data(yearly_large_county_data, 2009)
-plot_census_data(yearly_large_county_data, 2014)
-plot_census_data(yearly_large_county_data, 2019)
-plot_census_data(yearly_large_county_data, 2023)
-plot_census_data(yearly_large_county_data, 2024)
-
-
+# demonstrate the diffs between acs5 and acs1
+# showing that homicides rarely occur outside of >65k pop counties
+plot_census_data(2005)
+plot_census_data(2009)
+plot_census_data(2014)
+plot_census_data(2019)
+plot_census_data(2023)
+plot_census_data(2024)
 ```
-
 
 ```{r}
-# total ts
-homicide_data|> as_tsibble(index = month, key = series)|>
-  summarise(homicides = sum(homicides), .groups = "drop") |>
-  autoplot()
+# Plot homicides PC
+# yearly_large_county_data|>
+#   filter(year == 2024)|>
+#   ggplot() +
+#   geom_sf(aes(fill = homicides/total_population_1), color = "white") +  # white borders between counties
+#   scale_fill_viridis_c(option = "plasma", trans = "log10", 
+#                        name = "Homicides per Capita") +        # log scale for better contrast
+#   labs(
+#     title = paste("Homicides per Capita in", 2023),
+#     caption = "Source: ACS 1 estimates"
+#   ) +
+#   theme_minimal() +
+#   theme(axis.text = element_blank(),
+#         axis.ticks = element_blank(),
+#         legend.position = "bottom")
 
-# yearly ts
-homicide_data |> 
-  mutate(year = year(month)) |> 
-  group_by(year) |> 
-  summarise(homicides = sum(homicides), .groups = "drop") |> 
-  as_tsibble(index = year) |> 
-  autoplot()
 
-# only modern data after 2013 crime reporting changes
-homicide_data|> as_tsibble(index = month, key = c(series))|>
-  summarise(homicides = sum(homicides), .groups = "drop") |>
-  filter(year(month)>=2013)|>
-  autoplot()
 
-# only modern data after 2013 crime reporting changes stl decomp
-homicide_data|> 
-  mutate(month = yearmonth(month))|>
-  as_tsibble(index = month, key = c(series))|>
-  summarise(homicides = sum(homicides), .groups = "drop") |>
-  filter(year(month)>=2013)|>
-  model(stl = STL(homicides))|>
-  components()|>
-  autoplot()
 ```
+
+
 
