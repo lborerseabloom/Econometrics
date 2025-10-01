@@ -9,9 +9,11 @@ library(patchwork)
 library(gganimate)
 
 files <- list.files("downloads", full.names = TRUE)
-homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
+homicide_files <- files[!grepl("_", files)]
+officer_files <- files[grepl("_", files)]
 
-for(file_path in files){
+homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
+for(file_path in homicide_files){
   temp_file <- read.csv(file_path)|> slice(-2) |> # slice off the second junk row
     pivot_longer(cols = starts_with("X"), names_to = "month", values_to = "homicides")|> # pivot
     mutate(ori =  str_split(file_path, "[/.]")[[1]][2])|> # name ori column the ori from the filepath
@@ -21,6 +23,25 @@ for(file_path in files){
   homicide_data <- bind_rows(homicide_data, temp_file)
 }
 
+officer_counts <- tibble(series = c(), month = c(), homicides = c(), ori = c())
+for(file_path in officer_files){
+  temp_file <- read.csv(file_path)|>
+    pivot_longer(cols = where(is.numeric)|where(is.logical), names_to = "year", values_to = "officers")|>
+    mutate(ori =  str_split(file_path, "[/._]")[[1]][2])|>
+    mutate(year = as.numeric(sub("^X", "", year)))|>
+    select(ori, year, officers)
+  # add in temp_file to total file
+  officer_counts <- bind_rows(officer_counts, temp_file)
+}
+
+homicide_data <- left_join(homicide_data, officer_counts, by = join_by(ori, year))
+
+```
+
+```{r}
+```
+
+```{r census_imports}
 vars_5 <- c(
   median_household_income_5 = "B19013_001",  # Median household income
   total_population_5        = "B01003_001"   # Total population
@@ -257,7 +278,7 @@ yearly_ts <- homicide_data|>
   ) |>
   select(month, homicides, population, type)
   
-  
+
 
 # show homicides vs population relationship
 # Compute a scaling factor to map population into homicide scale
@@ -292,12 +313,10 @@ ggplot(yearly_ts, aes(x = month)) +
 
 
 # plot PC change in homicides
-yearly_large_county_data|>
-  st_drop_geometry()|>
-  drop_na(total_population_1, homicides)|>
-  group_by(year)|>
-  reframe(homicides_pc = sum(homicides) / sum(total_population_1))|>
-  ggplot(aes(x = year, y = homicides_pc))+
+yearly_ts|>
+  group_by(month)|>
+  reframe(homicides_pc = sum(homicides) / sum(population))|>
+  ggplot(aes(x = month, y = homicides_pc))+
   geom_line(size = 1, color = "darkblue")+
   geom_point()+
   theme_minimal()+
