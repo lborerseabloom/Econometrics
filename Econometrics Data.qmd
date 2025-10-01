@@ -6,7 +6,6 @@ library(tidycensus)
 library(fpp3)
 library(sf)
 library(patchwork)
-library(gganimate)
 
 files <- list.files("downloads", full.names = TRUE)
 homicide_files <- files[!grepl("_", files)]
@@ -23,37 +22,56 @@ for(file_path in homicide_files){
   homicide_data <- bind_rows(homicide_data, temp_file)
 }
 
-officer_counts <- tibble(series = c(), month = c(), homicides = c(), ori = c())
+officer_counts <- tibble(ori = c(), year = c(), officers = c())
 for(file_path in officer_files){
   temp_file <- read.csv(file_path)|>
     pivot_longer(cols = where(is.numeric)|where(is.logical), names_to = "year", values_to = "officers")|>
     mutate(ori =  str_split(file_path, "[/._]")[[1]][2])|>
     mutate(year = as.numeric(sub("^X", "", year)))|>
+    mutate(officers = if_else(officers == 0, NA, officers))|>
     select(ori, year, officers)
   # add in temp_file to total file
   officer_counts <- bind_rows(officer_counts, temp_file)
 }
 
 homicide_data <- left_join(homicide_data, officer_counts, by = join_by(ori, year))
-
-```
-
-```{r}
 ```
 
 ```{r census_imports}
+options(tigris_use_cache = TRUE)
+
 vars_5 <- c(
-  median_household_income_5 = "B19013_001",  # Median household income
   total_population_5        = "B01003_001"   # Total population
 )
 
 vars_1 <- c(
-  median_household_income_1 = "B19013_001",  # Median household income
-  total_population_1        = "B01003_001"   # Total population
+  total_population_1        = "B01003_001",  # Total population
+  
+  # Income
+  median_household_income   = "B19013_001",  # Median household income (dollars)
+  households_total          = "B19001_001",  # Total households
+  households_income_lt5k    = "B19001_002",  # Households with income < $5,000
+  
+  # Education - only available from 2008 on
+  edu_total_25plus          = "B15003_001",  # Total population 25 years and over
+  edu_hs_grad               = "B15003_017",  # High school graduate
+  edu_some_college_lt1yr    = "B15003_018",
+  edu_some_college_gt1yr    = "B15003_019",
+  edu_assoc_degree          = "B15003_020",
+  edu_bachelors             = "B15003_021",
+  edu_masters               = "B15003_022",
+  edu_professional_degree   = "B15003_023",
+  edu_doctorate             = "B15003_024",
+  
+  # Children living arrangements
+  children_total            = "B09001_001",  # Total population under 18 years
+  children_w_mother_only    = "B09001_004",  # Living with mother only
+  children_w_father_only    = "B09001_005",  # Living with father only
+  children_no_parents       = "B09001_006"   # Not living with either parent
 )
 
 vars_dec <- c(
-  total_population_dec      = "P1_001N"
+  total_population_dec      = "P1_001N"      # Total population
 )
 
 
@@ -79,7 +97,7 @@ acs_5yr_ts <- map_df(years, function(y) {
 
 ### 1 year acs estimates ###
 # 2020 estimates https://www.census.gov/programs-surveys/acs/data/experimental-data/1-year.html
-years = setdiff(2005:2024, 2020) # acs 1 with 2020 missing due to covid bias
+years = setdiff(2008:2024, 2020) # acs 1 with 2020 missing due to covid bias
 acs_1yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",
@@ -139,16 +157,42 @@ homicide_data <- homicide_data|>
     left_join(acs_5yr_ts, by = join_by(GEOID, year))|> # join to acs5 data by county and year
     distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
     group_by(month)|>
-    drop_na(homicides)|> # drop na homicde years, primarily from smaller depts early on in the data
+    drop_na(homicides)|> # drop na homicide years, primarily from smaller depts early on in the data
     ungroup() 
 
-# collapse data into a form that is able to work with 1 year census data
-yearly_large_county_data <- homicide_data |>
+# collapse data for mapping acs_5 vs acs_1 vs homicides by county
+mapping_yearly_data <- homicide_data |>
   group_by(county, year)|>
   mutate(homicides = sum(homicides))|>
   select(-series, -month, -ori, -type)|>
   distinct()|>
-  drop_na(county)|> # remove non county related homicides (Federal or state)
+  st_as_sf() # save as sf object for mapping
+
+acs_1_yearly_data <- homicide_data |>
+  # summarize homicides and officer counts by county and year
+  group_by(county, year)|>
+  mutate(homicides = sum(homicides),
+         officers = mean(officers, na.rm = TRUE))|>
+  select(-series, -month, -ori, -type)|>
+  distinct()|>
+  # linear interpolation for 2020 years and 2018 education estimates for geoid 27019  
+  ungroup(year)|>
+  arrange(year)|>
+  mutate(across(all_of(names(vars_1)), ~ zoo::na.approx(., x = year, na.rm = FALSE))) |>
+  # calculate aggregate stats
+  ungroup()|>
+  mutate(pct_lessthan_5kincome = (households_income_lt5k / households_total) * 100,
+         pct_highschool_or_greater = (edu_hs_grad + edu_some_college_lt1yr + 
+            edu_some_college_gt1yr + edu_assoc_degree + 
+            edu_bachelors + edu_masters + 
+            edu_professional_degree + edu_doctorate) / edu_total_25plus * 100,
+         pct_children_missing_parents = (children_w_mother_only + children_w_father_only + children_no_parents) / children_total * 100,
+         periods = year - min(acs_1yr_ts$year),
+         post_covid = ifelse(year>=2020, 1, 0))|>
+  # final cleaning
+  filter(county != "CLAY")|> # first acs1 year for clay is 2020, interpolation for 2020 wont work 
+  drop_na(total_population_1)|>
+  select(-total_population_5)|>
   st_as_sf() # save as sf object for mapping
 ```
 
@@ -157,7 +201,7 @@ yearly_large_county_data <- homicide_data |>
   
 plot_census_data <- function(year_to_plot){
   
-  map_data <- yearly_large_county_data|>
+  map_data <- mapping_yearly_data|>
     filter(year == year_to_plot)
   
   # Plot homicides
@@ -210,7 +254,7 @@ plot_census_data <- function(year_to_plot){
 
 # demonstrate the diffs between acs5 and acs1
 # showing that homicides rarely occur outside of >65k pop counties
-plot_census_data(2005)
+plot_census_data(2008)
 plot_census_data(2009)
 plot_census_data(2014)
 plot_census_data(2019)
@@ -324,38 +368,25 @@ yearly_ts|>
        x = "Date", y = "Homicides per Capita", 
        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
 
-
-
-# stl decomp for seasonality, not too useful if doing yearly data
-# homicide_data|> 
-#   mutate(month = yearmonth(month))|>
-#   as_tsibble(index = month, key = c(series))|>
-#   summarise(homicides = sum(homicides), .groups = "drop") |>
-#   filter(year(month)>=2013)|>
-#   model(stl = STL(homicides))|>
-#   components()|>
-#   autoplot()+
-#     theme_minimal()
+acs_1_yearly_data|>
+  ggplot(aes(x = homicides))+
+  geom_density()+
+  theme_minimal()+
+  labs(title = "Distribution of Minnesota Homicides by County by Year", 
+       x = "Date", y = "Homicides per Capita", 
+       caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
 ```
 
 
 
 ```{r}
-# Plot homicides PC
-# yearly_large_county_data|>
-#   filter(year == 2024)|>
-#   ggplot() +
-#   geom_sf(aes(fill = homicides/total_population_1), color = "white") +  # white borders between counties
-#   scale_fill_viridis_c(option = "plasma", trans = "log10", 
-#                        name = "Homicides per Capita") +        # log scale for better contrast
-#   labs(
-#     title = paste("Homicides per Capita in", 2023),
-#     caption = "Source: ACS 1 estimates"
-#   ) +
-#   theme_minimal() +
-#   theme(axis.text = element_blank(),
-#         axis.ticks = element_blank(),
-#         legend.position = "bottom")
+cor(
+  acs_1_yearly_data |> 
+    st_drop_geometry() |>                 # drop geometry if it's still there
+    select(homicides, periods, post_covid, officers, median_household_income, pct_lessthan_5kincome, pct_highschool_or_greater, pct_children_missing_parents),
+  use = "pairwise.complete.obs",
+  method = "pearson"
+)
 ```
 
 
