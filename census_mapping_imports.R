@@ -16,6 +16,10 @@ vars_1 <- c(
   total_population_1        = "B01003_001",  # Total population
   white_population          = "B02001_002",  # White population
   
+  # young male population
+  male_15_19 = "B01001_006",  
+  male_20_24 = "B01001_007",
+  
   # Income
   median_household_income   = "B19013_001",  # Median household income (dollars)
   households_total          = "B19001_001",  # Total households
@@ -121,7 +125,8 @@ alc_effects <- read.csv("data/ai_alcohol_effects.csv")|>
 # pull out geometry for mapping from the 5 year acs data
 county_geometry <- acs_5yr_ts |>
   select(GEOID, geometry) |>
-  distinct(GEOID, .keep_all = TRUE)
+  distinct(GEOID, .keep_all = TRUE)|>
+  mutate(area_m2   = as.numeric(st_area(geometry))) # extract area
 
 # drop geometry to avoid duplicate columns
 acs_5yr_ts <- acs_5yr_ts|> 

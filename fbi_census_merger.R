@@ -13,6 +13,7 @@ acs_5yr_ts <- readRDS("data/acs_5yr_ts.rds")
 
 ### final crime data file with all variables ###
 crime_data <- crime_data|>
+  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ifelse(is.na(.x), 0, .x)))|> # set NA values to 0
   left_join(mapping, by = join_by(ori), relationship = "many-to-many")|> # join in mapping variables
   left_join(acs_1yr_ts, by = join_by(GEOID, year))|> # join to acs1 data by county and year
   left_join(acs_5yr_ts, by = join_by(GEOID, year))|> # join to acs5 data by county and year
@@ -42,20 +43,25 @@ acs_1_yearly_data <- crime_data |>
   distinct()|>
   
   # linear interpolation to fill missing values for 2020 years and 2018 education estimates for geoid 27019  
-  ungroup(year)|>
+  ungroup()|>
+  group_by(county)|>
   arrange(year)|>
   mutate(across(all_of(names(vars_1)), ~ zoo::na.approx(., x = year, na.rm = FALSE))) |>
   
-  # calculate aggregate stats for final model
+  # find total crime rates
+  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_1,
+         homicide_rate = homicides/total_population_1)|>
   ungroup()|>
-  mutate(pct_lessthan_5kincome = (households_income_lt5k / households_total) * 100,
+  
+  # calculate aggregate stats for final model
+  mutate(pct_lessthan_5kincome = (households_income_lt5k / households_total)* 100,
          
          pct_highschool_or_greater = (edu_hs_grad + edu_some_college_lt1yr + 
                                         edu_some_college_gt1yr + edu_assoc_degree + 
                                         edu_bachelors + edu_masters + 
-                                        edu_professional_degree + edu_doctorate) / edu_total_25plus * 100,
+                                        edu_professional_degree + edu_doctorate) / edu_total_25plus* 100,
          
-         pct_children_missing_parents = (children_w_mother_only + children_w_father_only + children_no_parents) / children_total * 100,
+         pct_children_missing_parents = (children_w_mother_only + children_w_father_only + children_no_parents) / children_total* 100,
          
          periods = year - min(acs_1yr_ts$year),
          
@@ -63,7 +69,13 @@ acs_1_yearly_data <- crime_data |>
          
          msp_main_counties = ifelse(county %in% c("RAMSEY", "HENNEPIN"), 1, 0),
          
-         pct_non_white = 1 - (white_population / total_population_1))|>
+         pct_non_white = (1 - (white_population / total_population_1))* 100,
+         
+         pct_young_males = ((male_15_19 + male_20_24)/total_population_1)* 100,
+         
+         persons_per_household = total_population_1/households_total,
+         
+         persons_per_m2 = total_population_1/area_m2)|>
   
   # final cleaning
   filter(county != "CLAY")|>     # first acs1 year for clay is 2020, interpolation for 2020 wont work 
@@ -73,6 +85,4 @@ acs_1_yearly_data <- crime_data |>
 
 saveRDS(acs_1_yearly_data, "data/acs_1_yearly_data.rds")
 saveRDS(mapping_yearly_data, "data/mapping_yearly_data.rds")
-saveRDS(crime_data, "data/crime_data.rds")
-
-
+saveRDS(crime_data, "data/crime_data_merged.rds")
