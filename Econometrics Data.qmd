@@ -7,34 +7,7 @@ library(fpp3)
 library(sf)
 library(patchwork)
 
-files <- list.files("downloads", full.names = TRUE)
-homicide_files <- files[!grepl("_", files)]
-officer_files <- files[grepl("_", files)]
-
-homicide_data <- tibble(series = c(), month = c(), homicides = c(), ori = c())
-for(file_path in homicide_files){
-  temp_file <- read.csv(file_path)|> slice(-2) |> # slice off the second junk row
-    pivot_longer(cols = starts_with("X"), names_to = "month", values_to = "homicides")|> # pivot
-    mutate(ori =  str_split(file_path, "[/.]")[[1]][2])|> # name ori column the ori from the filepath
-    mutate(month = my(sub("^X", "", month)))|> # month year conversion
-    mutate(year = year(month)) # year column
-  # add in temp_file to total file
-  homicide_data <- bind_rows(homicide_data, temp_file)
-}
-
-officer_counts <- tibble(ori = c(), year = c(), officers = c())
-for(file_path in officer_files){
-  temp_file <- read.csv(file_path)|>
-    pivot_longer(cols = where(is.numeric)|where(is.logical), names_to = "year", values_to = "officers")|>
-    mutate(ori =  str_split(file_path, "[/._]")[[1]][2])|>
-    mutate(year = as.numeric(sub("^X", "", year)))|>
-    mutate(officers = if_else(officers == 0, NA, officers))|>
-    select(ori, year, officers)
-  # add in temp_file to total file
-  officer_counts <- bind_rows(officer_counts, temp_file)
-}
-
-homicide_data <- left_join(homicide_data, officer_counts, by = join_by(ori, year))
+homicide_data <- read_csv("crime_data.csv")
 ```
 
 ```{r census_imports}
@@ -46,6 +19,7 @@ vars_5 <- c(
 
 vars_1 <- c(
   total_population_1        = "B01003_001",  # Total population
+  white_population          = "B02001_002",  # White population
   
   # Income
   median_household_income   = "B19013_001",  # Median household income (dollars)
@@ -139,6 +113,9 @@ acs_1yr_ts <- bind_rows(acs_1yr_ts,
 
 # bring in and join ai generated mappings, they look pretty good
 mapping <- read.csv("ai_mappings.csv") |> mutate(GEOID = as.character(GEOID))
+alc_effects <- read.csv("ai_alcohol_effects.csv")|>
+  rename(county = Location)|>
+  mutate(county = toupper(county))
 
 # join in geometry with the mapping from the 5 year acs data
 county_geometry <- acs_5yr_ts |>
@@ -147,7 +124,8 @@ county_geometry <- acs_5yr_ts |>
 
 acs_5yr_ts <- acs_5yr_ts|> st_drop_geometry()
 
-mapping <- left_join(mapping, county_geometry)
+mapping <- left_join(mapping, county_geometry)|>
+  left_join(alc_effects)
 ```
 
 ```{r joining}
@@ -188,7 +166,9 @@ acs_1_yearly_data <- homicide_data |>
             edu_professional_degree + edu_doctorate) / edu_total_25plus * 100,
          pct_children_missing_parents = (children_w_mother_only + children_w_father_only + children_no_parents) / children_total * 100,
          periods = year - min(acs_1yr_ts$year),
-         post_covid = ifelse(year>=2020, 1, 0))|>
+         post_covid = ifelse(year>=2020, 1, 0),
+         msp_main_counties = ifelse(county %in% c("RAMSEY", "HENNEPIN"), 1, 0),
+         pct_non_white = 1 - (white_population / total_population_1))|>
   # final cleaning
   filter(county != "CLAY")|> # first acs1 year for clay is 2020, interpolation for 2020 wont work 
   drop_na(total_population_1)|>
@@ -383,11 +363,17 @@ acs_1_yearly_data|>
 cor(
   acs_1_yearly_data |> 
     st_drop_geometry() |>                 # drop geometry if it's still there
-    select(homicides, periods, post_covid, officers, median_household_income, pct_lessthan_5kincome, pct_highschool_or_greater, pct_children_missing_parents),
+    select(homicides, periods, post_covid, msp_main_counties, officers, median_household_income, pct_lessthan_5kincome, pct_highschool_or_greater, pct_children_missing_parents, pct_non_white, Binge.drinking.prevalence),
   use = "pairwise.complete.obs",
   method = "pearson"
 )
 ```
 
+```{r}
+model <- lm(homicides ~ post_covid + officers + msp_main_counties + 
+    pct_lessthan_5kincome + pct_highschool_or_greater + pct_children_missing_parents + 
+    median_household_income + Binge.drinking.prevalence + pct_non_white, data = acs_1_yearly_data)
+summary(model)
+```
 
 
