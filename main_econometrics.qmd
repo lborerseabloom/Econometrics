@@ -1,0 +1,211 @@
+```{r imports}
+#| verbose: False
+#| warning: False
+library(tidyverse)
+library(tidycensus)
+library(fpp3)
+library(sf)
+library(patchwork)
+
+acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
+mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
+crime_data <- readRDS("data/crime_data.rds")
+```
+
+```{r homicides_and_pop_spatial_time_series}
+#| warning: False
+  
+plot_census_data <- function(year_to_plot){
+  
+  map_data <- mapping_yearly_data|>
+    filter(year == year_to_plot)
+  
+  # Plot homicides
+  homicides_plot <- ggplot(map_data) +
+    geom_sf(aes(fill = homicides), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "homicides") +        # log scale for better contrast
+    labs(
+      title = paste("     Homicides in", year_to_plot),
+      caption = "Source: FBI Crime data"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  # Plot acs 5 pop
+  pop5_plot <- map_data|>
+    drop_na(total_population_5)|>
+    ggplot() +
+    geom_sf(aes(fill = total_population_5), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "Total Population") +        # log scale for better contrast
+    labs(
+      title = paste("Population in", year_to_plot),
+      caption = "Source: ACS 5 estimates"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  # Plot acs 1 pop
+  pop1_plot <- map_data|>
+    ggplot() +
+    geom_sf(aes(fill = total_population_1), color = "white") +  # white borders between counties
+    scale_fill_viridis_c(option = "plasma", trans = "log10", 
+                         name = "Total Population") +        # log scale for better contrast
+    labs(
+      title = paste("Population in", year_to_plot),
+      caption = "Source: ACS 1 estimates"
+    ) +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "none")
+  
+  return(pop5_plot + pop1_plot + homicides_plot)
+}
+
+# demonstrate the diffs between acs5 and acs1
+# showing that homicides rarely occur outside of >65k pop counties
+plot_census_data(2008)
+plot_census_data(2009)
+plot_census_data(2014)
+plot_census_data(2019)
+plot_census_data(2023)
+plot_census_data(2024)
+```
+
+```{r homicides_time_series}
+# Monthly totals
+monthly_ts <- crime_data |>
+  group_by(month) |>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  mutate(type = "Monthly")  # Add type for plotting
+
+# Yearly totals
+yearly_ts <- crime_data |>
+  group_by(year, county) |>
+  summarise(
+    population = first(total_population_1),  # take one value per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>
+  summarise(
+    population = sum(population, na.rm = TRUE),  # now only sum once per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    month = as.Date(paste0(year, "-01-01")),
+    type = "Yearly"
+  ) |>
+  select(month, homicides, population, type)
+
+# plotting df
+combined_ts <- bind_rows(monthly_ts, yearly_ts)
+
+# show the reasons for using yearly data due to how monthly is reported
+ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
+  geom_line(size = 1) +
+  geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
+  scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
+  theme_minimal() +
+  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")
+
+
+# refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
+yearly_ts <- crime_data|>
+  filter(GEOID %in% acs_1_yearly_data$GEOID)|>
+  group_by(year, county) |>
+  summarise(
+    population = first(total_population_1),  # take one value per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>
+  summarise(
+    population = sum(population, na.rm = TRUE),  # now only sum once per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    month = as.Date(paste0(year, "-01-01")),
+    type = "Yearly"
+  ) |>
+  select(month, homicides, population, type)
+  
+
+
+# show homicides vs population relationship
+# Compute a scaling factor to map population into homicide scale
+yearly_ts <- yearly_ts|>
+  mutate(population = ifelse(population == 0, NA, population))|>drop_na()
+
+scale_factor <- max(yearly_ts$homicides, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
+
+ggplot(yearly_ts, aes(x = month)) +
+  # Population line (left axis, true scale)
+  geom_line(aes(y = population, color = "Population"), size = 1, linetype = "dashed") +
+  geom_point(aes(y = population, color = "Population"), size = 2) +
+  
+  # Homicides line (right axis, scaled down)
+  geom_line(aes(y = homicides / scale_factor, color = "Homicides"), size = 1) +
+  geom_point(aes(y = homicides / scale_factor, color = "Homicides"), size = 2) +
+  
+  scale_y_continuous(
+    name = "Population",
+    sec.axis = sec_axis(~ . * scale_factor, name = "Homicides")
+  ) +
+  scale_color_manual(
+    values = c("Population" = "firebrick", "Homicides" = "darkblue")
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Minnesota Population vs Homicides Over Time for ACS1 Counties",
+    x = "Year",
+    color = "",
+    caption = "Source: ACS1 estimates; using Decennial counts for 2020"
+  )
+
+
+# plot PC change in homicides
+yearly_ts|>
+  group_by(month)|>
+  reframe(homicides_pc = sum(homicides) / sum(population))|>
+  ggplot(aes(x = month, y = homicides_pc))+
+  geom_line(size = 1, color = "darkblue")+
+  geom_point()+
+  theme_minimal()+
+  labs(title = "Minnesota Homicides per Capita Over Time for ACS1 Counties", 
+       x = "Date", y = "Homicides per Capita", 
+       caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
+
+acs_1_yearly_data|>
+  ggplot(aes(x = homicides))+
+  geom_density()+
+  theme_minimal()+
+  labs(title = "Distribution of Minnesota Homicides by County by Year", 
+       x = "Date", y = "Homicides per Capita", 
+       caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
+```
+
+```{r correlation_comparisons}
+cor(
+  acs_1_yearly_data |> 
+    st_drop_geometry() |>                 # drop geometry if it's still there
+    select(homicides, periods, post_covid, msp_main_counties, officers, median_household_income, pct_lessthan_5kincome, pct_highschool_or_greater, pct_children_missing_parents, pct_non_white, Binge.drinking.prevalence),
+  use = "pairwise.complete.obs",
+  method = "pearson"
+)
+```
+
+```{r modeling_start}
+model <- lm(homicides ~ post_covid + officers + msp_main_counties + 
+    pct_lessthan_5kincome + pct_highschool_or_greater + pct_children_missing_parents + 
+    median_household_income + Binge.drinking.prevalence + pct_non_white, data = acs_1_yearly_data)
+summary(model)
+```
