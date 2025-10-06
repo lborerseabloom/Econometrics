@@ -214,7 +214,7 @@ acs_1_yearly_data|>
        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
 ```
 
-```{r pre_modeling_comparisons}
+```{r acs_1_pre_modeling_comparisons}
 ### vars to calculate stats across for modeling
 modeling_vars <- c(
   "homicide_rate", "crime_rate", "periods", "post_covid", "msp_main_counties",
@@ -251,26 +251,6 @@ lapply(setdiff(modeling_vars, target), function(var) {
     p.value = test$p.value
   )
 }) |> bind_rows()
-
-
-
-```
-
-```{r modeling}
-# starting mixed effects model with one measure of each social disorganization factor
-# random effect by county to allow for different relationships
-# simple periods variable to account for time series
-model <- lmer(crime_rate ~ officers + pct_lessthan_5kincome +
-              pct_highschool_or_greater + pct_children_missing_parents + pct_non_white +
-            Binge.drinking.prevalence + pct_young_males + persons_per_m2 +
-               periods + (1 | county), data = acs_1_yearly_data)
-
-# many insignificant predictors
-summary(model)
-plot(model)
-
-qqnorm(resid(model))
-qqline(resid(model), col = "red")
 ```
 
 ```{r modeling}
@@ -290,6 +270,67 @@ qqnorm(resid(model_lag1))
 qqline(resid(model_lag1), col = "red")
 ```
 
+```{r acs_5_pre_modeling_comparisons}
+### vars to calculate stats across for modeling
+modeling_vars <- c(
+  "homicide_rate", "crime_rate",
+  "officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "pct_children_missing_parents", 
+  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
+  "persons_per_household", "persons_per_m2"
+)
+
+### t test across pre/post covid for all explanatory variables
+pvals <- acs_5_yearly_data |>
+  select(all_of(modeling_vars), post_covid) |>
+  pivot_longer(-post_covid, names_to = "variable", values_to = "value") |>
+  group_by(variable) |>
+  summarise(
+    ttest = list(t.test(value ~ post_covid, data = cur_data(), var.equal = FALSE)),
+    .groups = "drop"
+  ) |>
+  mutate(p.value = map_dbl(ttest, ~ .x$p.value)) |>
+  select(variable, p.value)
+
+### Descriptive stats
+summary_stats <- lapply(c(0,1), function(covid_indicatior){
+  means <- acs_5_yearly_data |>
+    filter(post_covid == covid_indicatior)|>
+  summarise(across(all_of(modeling_vars), ~ mean(.x, na.rm = TRUE)))
+
+  sds <- acs_5_yearly_data |>
+    filter(post_covid == covid_indicatior)|>
+    summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
+  
+  bind_rows(list(mean = means, sd = sds), .id = "stat")|>
+    pivot_longer(-stat, names_to = "variable", values_to = "value")|>
+    pivot_wider(names_from = "stat")
+  
+})|> bind_rows(.id = "year")|> 
+  mutate(year = ifelse(year == "1", "pre", "post"))|>
+  pivot_wider(names_from = "year", values_from = c(mean, sd))
+
+summary_stats <- left_join(summary_stats, pvals)|>
+  arrange(p.value)
+summary_stats
+
+
+### correlation matrix
+# cor is off because of serial and inter county correlation
+target <- "crime_rate"
+lapply(setdiff(modeling_vars, target), function(var) {
+  test <- cor.test(
+    acs_5_yearly_data[[target]],
+    acs_5_yearly_data[[var]],
+    method = "pearson"
+  )
+  data.frame(
+    variable = var,
+    estimate = test$estimate,
+    p.value = test$p.value
+  )
+}) |> bind_rows()|> arrange(p.value)
+```
 
 
 
