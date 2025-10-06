@@ -1,14 +1,18 @@
 ```{r imports}
 #| verbose: False
 #| warning: False
+
 library(tidyverse)
 library(tidycensus)
+
 library(fpp3)
 library(sf)
+
 library(patchwork)
+
 library(lme4)
 
-
+acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
 acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
 mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
 crime_data <- readRDS("data/crime_data_merged.rds")
@@ -38,9 +42,9 @@ plot_census_data <- function(year_to_plot){
   
   # Plot acs 5 pop
   pop5_plot <- map_data|>
-    drop_na(total_population_5)|>
+    drop_na(total_population_acs5)|>
     ggplot() +
-    geom_sf(aes(fill = total_population_5), color = "white") +  # white borders between counties
+    geom_sf(aes(fill = total_population_acs5), color = "white") +  # white borders between counties
     scale_fill_viridis_c(option = "plasma", trans = "log10", 
                          name = "Total Population") +        # log scale for better contrast
     labs(
@@ -55,7 +59,7 @@ plot_census_data <- function(year_to_plot){
   # Plot acs 1 pop
   pop1_plot <- map_data|>
     ggplot() +
-    geom_sf(aes(fill = total_population_1), color = "white") +  # white borders between counties
+    geom_sf(aes(fill = total_population_acs1), color = "white") +  # white borders between counties
     scale_fill_viridis_c(option = "plasma", trans = "log10", 
                          name = "Total Population") +        # log scale for better contrast
     labs(
@@ -72,12 +76,7 @@ plot_census_data <- function(year_to_plot){
 
 # demonstrate the diffs between acs5 and acs1
 # showing that homicides rarely occur outside of >65k pop counties
-plot_census_data(2008)
-plot_census_data(2009)
-plot_census_data(2014)
-plot_census_data(2019)
 plot_census_data(2023)
-plot_census_data(2024)
 
 acs_1_yearly_data|>
   group_by(county)|>
@@ -96,7 +95,7 @@ monthly_ts <- crime_data |>
 yearly_ts <- crime_data |>
   group_by(year, county) |>
   summarise(
-    population = first(total_population_1),  # take one value per county
+    population = first(total_population_acs1),  # take one value per county
     homicides = sum(homicides, na.rm = TRUE),
     .groups = "drop"
   ) |>
@@ -130,8 +129,8 @@ ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
 # refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
 yearly_ts <- acs_1_yearly_data|>
   group_by(year)|>
-  summarise(population = sum(total_population_1),
-            homicides_pc = sum(homicides)/sum(total_population_1),
+  summarise(population = sum(total_population_acs1),
+            homicides_pc = sum(homicides)/sum(total_population_acs1),
             across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum))|>
   mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/population)
   
@@ -139,10 +138,7 @@ yearly_ts <- acs_1_yearly_data|>
 
 # show homicides vs population relationship
 # Compute a scaling factor to map population into homicide scale
-yearly_ts <- yearly_ts|>
-  mutate(population = ifelse(population == 0, NA, population))|>drop_na()
-
-scale_factor <- max(yearly_ts$homicides, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
+scale_factor <- max(yearly_ts$crime_rate, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
 
 ggplot(yearly_ts, aes(x = year)) +
   # Population line (left axis, true scale)
@@ -150,27 +146,26 @@ ggplot(yearly_ts, aes(x = year)) +
   geom_point(aes(y = population, color = "Population"), size = 2) +
   
   # Homicides line (right axis, scaled down)
-  geom_line(aes(y = homicides / scale_factor, color = "Homicides"), size = 1) +
-  geom_point(aes(y = homicides / scale_factor, color = "Homicides"), size = 2) +
+  geom_line(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 1) +
+  geom_point(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 2) +
   
   scale_y_continuous(
     name = "Population",
-    sec.axis = sec_axis(~ . * scale_factor, name = "Homicides")
+    sec.axis = sec_axis(~ . * scale_factor, name = "General Crime Rate")
   ) +
   scale_color_manual(
-    values = c("Population" = "firebrick", "Homicides" = "darkblue")
+    values = c("Population" = "firebrick", "General Crime Rate" = "purple")
   ) +
   theme_minimal() +
   labs(
-    title = "Minnesota Population vs Homicides Over Time for ACS1 Counties",
+    title = "Minnesota Population vs Crime Rates Over Time for ACS1 Counties",
     x = "Year",
     color = "",
     caption = "Source: ACS1 estimates; using Decennial counts for 2020"
   )
 
 
-scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / 
-                max(yearly_ts$crime_rate, na.rm = TRUE)
+scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / max(yearly_ts$crime_rate, na.rm = TRUE)
 
 ggplot(yearly_ts, aes(x = year)) +
   # Homicides per capita (true scale, left axis)
@@ -203,7 +198,7 @@ ggplot(yearly_ts, aes(x = year)) +
 
 
 acs_1_yearly_data|>
-  ggplot(aes(x = homicides/total_population_1))+
+  ggplot(aes(x = homicides/total_population_acs1))+
   geom_density()+
   theme_minimal()+
   labs(title = "Density of Minnesota Homicides by County by Year", 
@@ -223,15 +218,18 @@ acs_1_yearly_data|>
 ### vars to calculate stats across for modeling
 modeling_vars <- c(
   "homicide_rate", "crime_rate", "periods", "post_covid", "msp_main_counties",
-  "officers", "median_household_income", "pct_lessthan_5kincome", 
+  "officers", "median_household_income_acs1", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "pct_children_missing_parents", 
   "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
   "persons_per_household", "persons_per_m2"
 )
 
 ### Descriptive stats
-means <- acs_1_yearly_data|>summarise(across(modeling_vars, mean))
-sds <- acs_1_yearly_data|>summarise(across(modeling_vars, sd))
+means <- acs_1_yearly_data |>
+  summarise(across(all_of(modeling_vars), ~ mean(.x, na.rm = TRUE)))
+
+sds <- acs_1_yearly_data |>
+  summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
 
 bind_rows(list(mean = means, sd = sds), .id = "stat")|>
   select(-periods, -post_covid, -msp_main_counties)|>
@@ -239,6 +237,7 @@ bind_rows(list(mean = means, sd = sds), .id = "stat")|>
   pivot_wider(names_from = "stat")
 
 ### correlation matrix
+# cor is off because of serial and inter county correlation
 target <- "homicide_rate"
 lapply(setdiff(modeling_vars, target), function(var) {
   test <- cor.test(
@@ -252,18 +251,44 @@ lapply(setdiff(modeling_vars, target), function(var) {
     p.value = test$p.value
   )
 }) |> bind_rows()
-```
 
-```{r theoretical_model}
-
-# need to ponder if me model is right here
-lmer_model <- lmer(homicide_rate ~ median_household_income + pct_non_white + 
-                     pct_young_males + post_covid + (1 | county),
-                   data = acs_1_yearly_data)
 
 
 ```
 
+```{r modeling}
+# starting mixed effects model with one measure of each social disorganization factor
+# random effect by county to allow for different relationships
+# simple periods variable to account for time series
+model <- lmer(crime_rate ~ officers + pct_lessthan_5kincome +
+              pct_highschool_or_greater + pct_children_missing_parents + pct_non_white +
+            Binge.drinking.prevalence + pct_young_males + persons_per_m2 +
+               periods + (1 | county), data = acs_1_yearly_data)
+
+# many insignificant predictors
+summary(model)
+plot(model)
+
+qqnorm(resid(model))
+qqline(resid(model), col = "red")
+```
+
+```{r modeling}
+# starting mixed effects model with one measure of each social disorganization factor
+# random effect by county to allow for different relationships
+# simple periods variable to account for time series
+model_lag1 <- lmer(crime_rate ~ officers + pct_lessthan_5kincome +
+              pct_highschool_or_greater + pct_children_missing_parents + pct_non_white +
+            Binge.drinking.prevalence + pct_young_males + persons_per_m2 +
+               periods + crime_rate_lag1 + (1 | county), data = acs_1_yearly_data)
+
+# many insignificant predictors
+summary(model_lag1)
+plot(model_lag1)
+
+qqnorm(resid(model_lag1))
+qqline(resid(model_lag1), col = "red")
+```
 
 
 

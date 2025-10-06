@@ -7,13 +7,9 @@ library(readr)
 # cache shape files to avoid slow downloads
 options(tigris_use_cache = TRUE)
 
-### define variables to pull from various census surveys ###
-vars_5 <- c(
-  total_population_5        = "B01003_001"   # Total population
-)
-
-vars_1 <- c(
-  total_population_1        = "B01003_001",  # Total population
+### define variables to pull from census surveys ###
+vars <- c(
+  total_population          = "B01003_001",  # Total population
   white_population          = "B02001_002",  # White population
   
   # young male population
@@ -50,12 +46,12 @@ vars_dec <- c(
 
 ### 5 year acs estimates ###
 # Pull ACS data for all variables at county level for MN
-years = c(2009, 2014, 2019, 2023) # 2019-2023 acs5 overlaps the 2019 year and is not perfectly representative of the change
+years = c(2018, 2023) # Want to compare pre covid 2014-18 vs 2019-23 
 acs_5yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",
     survey = "acs5",
-    variables = vars_5,
+    variables = vars,
     state = "MN",
     year = y,
     geometry = TRUE
@@ -76,7 +72,7 @@ acs_1yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",
     survey = "acs1",
-    variables = vars_1,
+    variables = vars,
     state = "MN",
     year = y,
     geometry = FALSE
@@ -137,7 +133,7 @@ mapping <- left_join(mapping, county_geometry)|>
   left_join(alc_effects)
 
 # use RDS to pass geometry without breaking write_csv
-saveRDS(vars_1, "data/vars_1.rds")
+saveRDS(vars, "data/vars.rds")
 saveRDS(mapping, "data/mapping.rds")
 saveRDS(acs_1yr_ts, "data/acs_1yr_ts.rds")
 saveRDS(acs_5yr_ts, "data/acs_5yr_ts.rds")
