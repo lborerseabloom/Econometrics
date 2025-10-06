@@ -6,6 +6,8 @@ library(tidycensus)
 library(fpp3)
 library(sf)
 library(patchwork)
+library(lme4)
+
 
 acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
 mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
@@ -76,6 +78,11 @@ plot_census_data(2014)
 plot_census_data(2019)
 plot_census_data(2023)
 plot_census_data(2024)
+
+acs_1_yearly_data|>
+  group_by(county)|>
+  count()|>
+  arrange(n)
 ```
 
 ```{r homicides_time_series}
@@ -212,12 +219,66 @@ acs_1_yearly_data|>
        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
 ```
 
-```{r correlation_comparisons`}
-cor(
-  acs_1_yearly_data |> 
-    st_drop_geometry() |>                 # drop geometry if it's still there
-    select(homicide_rate, crime_rate, periods, post_covid, msp_main_counties, officers, median_household_income, pct_lessthan_5kincome, pct_highschool_or_greater, pct_children_missing_parents, pct_non_white, Binge.drinking.prevalence),
-  use = "pairwise.complete.obs",
-  method = "pearson"
+```{r pre_modeling_comparisons}
+### vars to calculate stats across for modeling
+modeling_vars <- c(
+  "homicide_rate", "crime_rate", "periods", "post_covid", "msp_main_counties",
+  "officers", "median_household_income", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "pct_children_missing_parents", 
+  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
+  "persons_per_household", "persons_per_m2"
 )
+
+### Descriptive stats
+means <- acs_1_yearly_data|>summarise(across(modeling_vars, mean))
+sds <- acs_1_yearly_data|>summarise(across(modeling_vars, sd))
+
+bind_rows(list(mean = means, sd = sds), .id = "stat")|>
+  select(-periods, -post_covid, -msp_main_counties)|>
+  pivot_longer(-stat, names_to = "variable", values_to = "value")|>
+  pivot_wider(names_from = "stat")
+
+### correlation matrix
+target <- "homicide_rate"
+lapply(setdiff(modeling_vars, target), function(var) {
+  test <- cor.test(
+    acs_1_yearly_data[[target]],
+    acs_1_yearly_data[[var]],
+    method = "pearson"
+  )
+  data.frame(
+    variable = var,
+    estimate = test$estimate,
+    p.value = test$p.value
+  )
+}) |> bind_rows()
 ```
+
+```{r theoretical_model}
+
+# need to ponder if me model is right here
+lmer_model <- lmer(homicide_rate ~ median_household_income + pct_non_white + 
+                     pct_young_males + post_covid + (1 | county),
+                   data = acs_1_yearly_data)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
