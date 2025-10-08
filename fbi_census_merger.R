@@ -105,8 +105,16 @@ acs_5_yearly_data <- crime_data |>
   
   ungroup()|>
   group_by(county)|>
-  # find total crime rates
-  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
+  
+  # add rolling averages of crime stats (last 4 years incl. current)
+  # this converts crime stats to the same 5 yr rolling avg that is used by acs5
+  arrange(county, year) |>
+  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
+                  slider::slide_dbl(.x, mean, .before = 4, .complete = TRUE))
+  ) |>
+  
+  # find total crime rates using the aggregated columns
+  mutate(crime_rate =    (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
          homicide_rate = homicides/total_population_acs5)|>
   
   ungroup()|>

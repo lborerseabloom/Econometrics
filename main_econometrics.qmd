@@ -253,7 +253,7 @@ lapply(setdiff(modeling_vars, target), function(var) {
 }) |> bind_rows()
 ```
 
-```{r modeling}
+```{r acs1_modeling}
 # starting mixed effects model with one measure of each social disorganization factor
 # random effect by county to allow for different relationships
 # simple periods variable to account for time series
@@ -316,7 +316,6 @@ summary_stats
 
 
 ### correlation matrix
-# cor is off because of serial and inter county correlation
 target <- "crime_rate"
 lapply(setdiff(modeling_vars, target), function(var) {
   test <- cor.test(
@@ -332,6 +331,113 @@ lapply(setdiff(modeling_vars, target), function(var) {
 }) |> bind_rows()|> arrange(p.value)
 ```
 
+```{r acs5_pre_post_modeling}
+# need to arrange data before cum sum
+acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid)
+
+modeling_vars <- c("officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "pct_children_missing_parents", "msp_main_counties",
+  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
+  "persons_per_household", "log(persons_per_m2)"
+)
+
+formula <- reformulate(modeling_vars, response = "crime_rate")
+
+pre_covid_model <- lm(formula, data = acs_5_yearly_data|>filter(post_covid == 0))
+post_covid_model <- lm(formula, data = acs_5_yearly_data|>filter(post_covid == 1))
+
+summary(pre_covid_model)
+summary(post_covid_model)
+
+
+full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
+
+total_model <- lm(full_formula, data = acs_5_yearly_data)
+
+summary(total_model)
+
+# residuals vs fits
+plot(pre_covid_model, 1)
+plot(post_covid_model, 1)
+plot(total_model, 1)
+
+
+# Chow test using the 'post_covid' variable as the breakpoint
+chow_test <- strucchange::sctest(total_model, type = "Chow", point = which(acs_5_yearly_data$post_covid == 1)[1])
+
+print(chow_test)
+
+
+# CUMSUM test
+cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5_yearly_data)
+
+# statistical test on the CUMSUM process
+cumsum_test <- strucchange::sctest(cumsum_process)
+
+print(cumsum_test)
+plot(cumsum_process)
+```
+
+```{r relationship_analysis}
+walk(modeling_vars, function(var) {
+  ggplot(acs_5_yearly_data, aes_string(x = var, y = "crime_rate")) +
+    geom_point(alpha = 0.6) +
+    geom_smooth(method = "lm", color = "blue", se = FALSE) +
+    labs(
+      title = paste("Crime Rate vs", var),
+      x = var,
+      y = "Crime Rate"
+    ) +
+    theme_minimal() -> p
+  
+  print(p)
+})
+```
+
+
+```{r differenced_data}
+# dont see too muc hwhen taking the difference and comparing to explanatory census variables
+# might need to average/ estimate with the crime data in a similar way to the acs5 grouping 
+acs_5_yearly_data_diff <- acs_5_yearly_data|>
+  group_by(county)|>
+  summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]), 
+                   .names = "{.col}_diff"))|>
+  select(-Binge.drinking.prevalence_diff)
+
+acs_5_yearly_data_diff|>
+  ggplot(aes(x = crime_rate_diff))+
+  geom_density()+
+  geom_histogram(bins = 15)+
+  theme_minimal()+
+  labs(x = "Differences in Crime Rates by County")+
+    theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+### correlation matrix
+target <- "crime_rate_diff"
+modeling_vars_diff <- setdiff(names(acs_5_yearly_data_diff), c("county"))
+
+lapply(setdiff(modeling_vars_diff, target), function(var) {
+  test <- cor.test(
+    acs_5_yearly_data_diff[[target]],
+    acs_5_yearly_data_diff[[var]],
+    method = "pearson"
+  )
+  data.frame(
+    variable = var,
+    estimate = test$estimate,
+    p.value = test$p.value
+  )
+}) |> bind_rows()|> arrange(p.value)
+
+
+model_diff <- lm(crime_rate_diff ~ pct_children_missing_parents_diff + pct_highschool_or_greater_diff +
+                   pct_highschool_or_greater_diff + pct_young_males_diff + persons_per_household_diff	+
+                   pct_non_white_diff + officers_diff + persons_per_m2_diff + pct_lessthan_5kincome_diff +
+                   median_household_income_acs5_diff, data = acs_5_yearly_data_diff)
+summary(model_diff)
+```
 
 
 
