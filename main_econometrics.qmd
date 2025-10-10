@@ -329,16 +329,28 @@ lapply(setdiff(modeling_vars, target), function(var) {
     p.value = test$p.value
   )
 }) |> bind_rows()|> arrange(p.value)
+
+acs_5_yearly_data|>
+  ggplot(aes(x = (crime_rate)))+
+  geom_density()+
+  geom_histogram(bins = 15)
+
+acs_5_yearly_data|>
+  ggplot(aes(x = sqrt(crime_rate)))+
+  geom_density()+
+  geom_histogram(bins = 15)
+
 ```
 
 ```{r acs5_pre_post_modeling}
 # need to arrange data before cum sum
 acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid)
 
+# removed "pct_children_missing_parents", "msp_main_counties", "Binge.drinking.prevalence", 
+# "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
+
 modeling_vars <- c("officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "pct_children_missing_parents", "msp_main_counties",
-  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
-  "persons_per_household", "log(persons_per_m2)"
+  "pct_highschool_or_greater", "log(pct_non_white)", "log(persons_per_m2)"
 )
 
 formula <- reformulate(modeling_vars, response = "crime_rate")
@@ -376,11 +388,22 @@ cumsum_test <- strucchange::sctest(cumsum_process)
 
 print(cumsum_test)
 plot(cumsum_process)
+
+# rmse before/after
+RMSE(pre_covid_model$residuals)
+RMSE(post_covid_model$residuals)
+
+# test for equal variances
+
+# .5 bc test suggests sqrt transform 
+bc <- MASS::boxcox(lm(full_formula, data = acs_5_yearly_data))
+var.test(sqrt(acs_5_yearly_data$crime_rate) ~ acs_5_yearly_data$post_covid)
+car::leveneTest(sqrt(acs_5_yearly_data$crime_rate) ~ as.factor(acs_5_yearly_data$post_covid))
 ```
 
 ```{r relationship_analysis}
 walk(modeling_vars, function(var) {
-  ggplot(acs_5_yearly_data, aes_string(x = var, y = "crime_rate")) +
+  ggplot(acs_5_yearly_data, aes_string(x = var, y = "sqrt(crime_rate)")) +
     geom_point(alpha = 0.6) +
     geom_smooth(method = "lm", color = "blue", se = FALSE) +
     labs(
@@ -392,11 +415,23 @@ walk(modeling_vars, function(var) {
   
   print(p)
 })
+
+# why does officers change in significance?
+acs_5_yearly_data|>
+  filter(post_covid == 0)|>
+  ggplot(aes(x = officers, y = crime_rate))+
+  geom_point()+
+  geom_smooth(se = F, method = "lm")
+
+acs_5_yearly_data|>
+  filter(post_covid == 1)|>
+  ggplot(aes(x = officers, y = crime_rate))+
+  geom_point()+
+  geom_smooth(se = F, method = "lm")
 ```
 
-
 ```{r differenced_data}
-# dont see too muc hwhen taking the difference and comparing to explanatory census variables
+# dont see too much when taking the difference and comparing to explanatory census variables
 # might need to average/ estimate with the crime data in a similar way to the acs5 grouping 
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
   group_by(county)|>
@@ -438,19 +473,3 @@ model_diff <- lm(crime_rate_diff ~ pct_children_missing_parents_diff + pct_highs
                    median_household_income_acs5_diff, data = acs_5_yearly_data_diff)
 summary(model_diff)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
