@@ -9,6 +9,9 @@ library(fpp3)
 library(sf)
 
 library(patchwork)
+library(knitr)
+library(kableExtra)
+library(broom)
 
 library(lme4)
 
@@ -18,70 +21,49 @@ mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
 crime_data <- readRDS("data/crime_data_merged.rds")
 ```
 
-```{r homicides_and_pop_spatial_time_series}
+```{r crime_and_pop_mapping}
 #| warning: False
   
-plot_census_data <- function(year_to_plot){
-  
-  map_data <- mapping_yearly_data|>
-    filter(year == year_to_plot)
-  
-  # Plot homicides
-  homicides_plot <- ggplot(map_data) +
-    geom_sf(aes(fill = homicides), color = "white") +  # white borders between counties
-    scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                         name = "homicides") +        # log scale for better contrast
-    labs(
-      title = paste("     Homicides in", year_to_plot),
-      caption = "Source: FBI Crime data"
-    ) +
-    theme_minimal() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.position = "none")
-  
-  # Plot acs 5 pop
-  pop5_plot <- map_data|>
-    drop_na(total_population_acs5)|>
-    ggplot() +
-    geom_sf(aes(fill = total_population_acs5), color = "white") +  # white borders between counties
-    scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                         name = "Total Population") +        # log scale for better contrast
-    labs(
-      title = paste("Population in", year_to_plot),
-      caption = "Source: ACS 5 estimates"
-    ) +
-    theme_minimal() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.position = "none")
-  
-  # Plot acs 1 pop
-  pop1_plot <- map_data|>
-    ggplot() +
-    geom_sf(aes(fill = total_population_acs1), color = "white") +  # white borders between counties
-    scale_fill_viridis_c(option = "plasma", trans = "log10", 
-                         name = "Total Population") +        # log scale for better contrast
-    labs(
-      title = paste("Population in", year_to_plot),
-      caption = "Source: ACS 1 estimates"
-    ) +
-    theme_minimal() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.position = "none")
-  
-  return(pop5_plot + pop1_plot + homicides_plot)
-}
+a <- mapping_yearly_data |>
+  filter(year == 2023) |>
+  ggplot() +
+  geom_sf(aes(fill = total_population_acs5), color = "white") +
+  scale_fill_viridis_c(
+    option = "plasma",
+    trans = "log10",
+    name = "Total Population",
+    labels = scales::label_number(scale_cut = scales::cut_short_scale())  # e.g., 10K, 1M
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+    plot.margin = margin(0, 0, 0, 0)
+  )
 
-# demonstrate the diffs between acs5 and acs1
-# showing that homicides rarely occur outside of >65k pop counties
-plot_census_data(2023)
+b <- mapping_yearly_data |>
+  filter(year == 2023) |>
+  ggplot() +
+  geom_sf(aes(fill = crime_rate), color = "white") +
+  scale_fill_viridis_c(
+    option = "plasma",
+    name = "Crime Rates"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+    plot.margin = margin(0, 0, 0, 0)
+  )
 
-acs_1_yearly_data|>
-  group_by(county)|>
-  count()|>
-  arrange(n)
+a + b +
+  plot_annotation(
+    title = "Overall Population Analysis (2023)",
+    subtitle = "Population by County and Yearly Trends",
+    caption = "Source: ACS 5-Year Estimates"
+  )
 ```
 
 ```{r homicides_time_series}
@@ -122,7 +104,13 @@ ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
   geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
   scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
   theme_minimal() +
-  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")
+  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")+
+theme(
+  legend.position = c(0.1, 0.8),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_text("Time Period")
+)
+
 
 
 
@@ -162,7 +150,12 @@ ggplot(yearly_ts, aes(x = year)) +
     x = "Year",
     color = "",
     caption = "Source: ACS1 estimates; using Decennial counts for 2020"
-  )
+  )+
+theme(
+  legend.position = c(0.2, 0.2),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_blank()
+)
 
 
 scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / max(yearly_ts$crime_rate, na.rm = TRUE)
@@ -273,7 +266,7 @@ qqline(resid(model_lag1), col = "red")
 ```{r acs_5_pre_modeling_comparisons}
 ### vars to calculate stats across for modeling
 modeling_vars <- c(
-  "homicide_rate", "crime_rate",
+  "crime_rate",
   "officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "pct_children_missing_parents", 
   "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
@@ -312,12 +305,15 @@ summary_stats <- lapply(c(0,1), function(covid_indicatior){
 
 summary_stats <- left_join(summary_stats, pvals)|>
   arrange(p.value)
-summary_stats
+
+kable(summary_stats, format = "html",
+             caption = "Signifigance of changes in Cesus variables")|>
+kable_styling("striped")  
 
 
 ### correlation matrix
 target <- "crime_rate"
-lapply(setdiff(modeling_vars, target), function(var) {
+crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
   test <- cor.test(
     acs_5_yearly_data[[target]],
     acs_5_yearly_data[[var]],
@@ -325,10 +321,14 @@ lapply(setdiff(modeling_vars, target), function(var) {
   )
   data.frame(
     variable = var,
-    estimate = test$estimate,
+    estimate = test$estimate[[1]],
     p.value = test$p.value
   )
 }) |> bind_rows()|> arrange(p.value)
+
+kable(crime_correlation, format = "html",
+             caption = "Signifigance of correlation with crime rates")|>
+kable_styling("striped")  
 
 acs_5_yearly_data|>
   ggplot(aes(x = (crime_rate)))+
@@ -342,31 +342,54 @@ acs_5_yearly_data|>
 
 ```
 
-```{r acs5_pre_post_modeling}
+```{r acs5_modeling}
 # need to arrange data before cum sum
-acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid)
+acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
+  mutate(
+    log_pct_non_white = log(pct_non_white),
+    log_persons_per_m2 = log(persons_per_m2),
+    log_officers = log(officers)
+  )
 
 # removed "pct_children_missing_parents", "msp_main_counties", "Binge.drinking.prevalence", 
 # "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
 
-modeling_vars <- c("officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "log(pct_non_white)", "log(persons_per_m2)"
+modeling_vars <- c("log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
 )
 
 formula <- reformulate(modeling_vars, response = "crime_rate")
 
-pre_covid_model <- lm(formula, data = acs_5_yearly_data|>filter(post_covid == 0))
-post_covid_model <- lm(formula, data = acs_5_yearly_data|>filter(post_covid == 1))
+# Fit your models
+pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
+post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
 
-summary(pre_covid_model)
-summary(post_covid_model)
+full_formula     <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
+total_model      <- lm(full_formula, data = acs_5_yearly_data)
+
+# Combine tidy summaries
+combined <- bind_rows(
+  tidy(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
+  tidy(post_covid_model) |> mutate(Model = "Post-COVID"),
+  tidy(total_model)      |> mutate(Model = "Full Model")
+)|>
+  select(Model, term, estimate, std.error, p.value) |>
+  mutate(across(c(std.error, p.value), ~ round(., 3)))
+
+pre_rows  <- 1:nrow(tidy(pre_covid_model))
+post_rows <- (max(pre_rows)+1):(max(pre_rows)+nrow(tidy(post_covid_model)))
+full_rows <- (max(post_rows)+1):(max(post_rows)+nrow(tidy(total_model)))
+
+# Create the table with grouped rows
+kbl(combined, caption = "Regression Models with Grouped Rows") |>
+  kable_styling("striped", full_width = FALSE) |>
+  group_rows("Pre-COVID", pre_rows[1], pre_rows[length(pre_rows)]) |>
+  group_rows("Post-COVID", post_rows[1], post_rows[length(post_rows)]) |>
+  group_rows("Full Model", full_rows[1], full_rows[length(full_rows)])
 
 
-full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
 
-total_model <- lm(full_formula, data = acs_5_yearly_data)
 
-summary(total_model)
 
 # residuals vs fits
 plot(pre_covid_model, 1)
@@ -402,19 +425,26 @@ car::leveneTest(sqrt(acs_5_yearly_data$crime_rate) ~ as.factor(acs_5_yearly_data
 ```
 
 ```{r relationship_analysis}
-walk(modeling_vars, function(var) {
-  ggplot(acs_5_yearly_data, aes_string(x = var, y = "sqrt(crime_rate)")) +
-    geom_point(alpha = 0.6) +
-    geom_smooth(method = "lm", color = "blue", se = FALSE) +
-    labs(
-      title = paste("Crime Rate vs", var),
-      x = var,
-      y = "Crime Rate"
-    ) +
-    theme_minimal() -> p
-  
-  print(p)
-})
+target <- "crime_rate"
+
+# Pivot the data into long format for faceting
+facet_data <- acs_5_yearly_data |>
+  pivot_longer(
+    cols = all_of(setdiff(modeling_vars, target)),
+    names_to = "variable",
+    values_to = "value"
+  )
+
+# Make one big faceted plot
+ggplot(facet_data, aes(x = value, y = .data[[target]])) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", color = "blue", se = TRUE) +
+  facet_wrap(~ variable, scales = "free_x") +
+  labs(
+    x = "Predictor Value",
+    y = "Crime Rate"
+  ) +
+  theme_bw()
 
 # why does officers change in significance?
 acs_5_yearly_data|>
@@ -432,44 +462,35 @@ acs_5_yearly_data|>
 
 ```{r differenced_data}
 # dont see too much when taking the difference and comparing to explanatory census variables
-# might need to average/ estimate with the crime data in a similar way to the acs5 grouping 
+# might need to average/ estimate with the crime data in a similar way to the acs5 grouping
+modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
+)
+
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
   group_by(county)|>
-  summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]), 
-                   .names = "{.col}_diff"))|>
-  select(-Binge.drinking.prevalence_diff)
+  summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
+                   .names = "{.col}_diff"))
 
-acs_5_yearly_data_diff|>
-  ggplot(aes(x = crime_rate_diff))+
-  geom_density()+
-  geom_histogram(bins = 15)+
-  theme_minimal()+
-  labs(x = "Differences in Crime Rates by County")+
-    theme(axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
+modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")  # drop crime_rate, add _diff
 
-### correlation matrix
-target <- "crime_rate_diff"
-modeling_vars_diff <- setdiff(names(acs_5_yearly_data_diff), c("county"))
+model_diff <- lm(
+  formula = as.formula(
+    paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
+  ),
+  data = acs_5_yearly_data_diff
+)
 
-lapply(setdiff(modeling_vars_diff, target), function(var) {
-  test <- cor.test(
-    acs_5_yearly_data_diff[[target]],
-    acs_5_yearly_data_diff[[var]],
-    method = "pearson"
-  )
-  data.frame(
-    variable = var,
-    estimate = test$estimate,
-    p.value = test$p.value
-  )
-}) |> bind_rows()|> arrange(p.value)
+diff_tbl <- tidy(model_diff) |>
+  select(term, estimate, std.error, statistic, p.value) |>
+  mutate(
+    std.error = round(std.error, 3),
+    p.value   = round(p.value, 3)
+  ) |>
+  mutate(Model = "Differenced Model") |>
+  select(Model, term, estimate, std.error, p.value)
 
-
-model_diff <- lm(crime_rate_diff ~ pct_children_missing_parents_diff + pct_highschool_or_greater_diff +
-                   pct_highschool_or_greater_diff + pct_young_males_diff + persons_per_household_diff	+
-                   pct_non_white_diff + officers_diff + persons_per_m2_diff + pct_lessthan_5kincome_diff +
-                   median_household_income_acs5_diff, data = acs_5_yearly_data_diff)
-summary(model_diff)
+kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
+  kable_styling("striped", full_width = FALSE) |>
+  group_rows("Difference Model", 1, nrow(diff_tbl))
 ```

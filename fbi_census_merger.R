@@ -25,10 +25,28 @@ crime_data <- crime_data|>
 
 ### collapse main crime data for mapping acs_5 vs acs_1 vs homicides by county ###
 mapping_yearly_data <- crime_data |>
+  
+  # summarize crimes and officer counts by county and year to condense from monthly data
   group_by(county, year)|>
-  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum))|>
+  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum),
+         officers = mean(officers, na.rm = TRUE))|>
   select(-series, -month, -ori, -type)|>
   distinct()|>
+  
+  ungroup()|>
+  group_by(county)|>
+  
+  # add rolling averages of crime stats (last 4 years incl. current)
+  # this converts crime stats to the same 5 yr rolling avg that is used by acs5
+  arrange(county, year) |>
+  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
+                  slider::slide_dbl(.x, mean, .before = 4, .complete = TRUE))
+  ) |>
+  
+  # find total crime rates using the aggregated columns
+  mutate(crime_rate =    (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
+         homicide_rate = homicides/total_population_acs5)|>
+  
   st_as_sf() # save as sf object for mapping
 
 
