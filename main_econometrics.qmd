@@ -12,7 +12,9 @@ library(patchwork)
 library(knitr)
 library(kableExtra)
 library(broom)
-
+library(Metrics)
+library(lmtest)
+library(sandwich)
 library(lme4)
 
 acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
@@ -24,15 +26,35 @@ crime_data <- readRDS("data/crime_data_merged.rds")
 ```{r crime_and_pop_mapping}
 #| warning: False
   
-a <- mapping_yearly_data |>
-  filter(year == 2023) |>
-  ggplot() +
+# Base map for year 2023
+data_2023 <- mapping_yearly_data |> 
+  filter(year == 2023)
+
+# Compute centroids only for the top cities
+city_centroids <- data_2023 |>
+  filter(top_cities == 1) |>
+  st_centroid()
+
+# Plot A — population
+a <- ggplot(data_2023) +
   geom_sf(aes(fill = total_population_acs5), color = "white") +
+  # black border for reservations
+  geom_sf(
+    data = subset(data_2023, reservations == 1),
+    fill = NA,
+    color = "black",
+    size = .75
+  ) +
+  # Black dot at centroid for top cities
+  geom_sf(
+    data = city_centroids,
+    color = "black", size = 1.8
+  ) +
   scale_fill_viridis_c(
     option = "plasma",
     trans = "log10",
     name = "Total Population",
-    labels = scales::label_number(scale_cut = scales::cut_short_scale())  # e.g., 10K, 1M
+    labels = scales::label_number(scale_cut = scales::cut_short_scale())
   ) +
   theme_minimal() +
   theme(
@@ -42,10 +64,20 @@ a <- mapping_yearly_data |>
     plot.margin = margin(0, 0, 0, 0)
   )
 
-b <- mapping_yearly_data |>
-  filter(year == 2023) |>
-  ggplot() +
+# Plot B — crime rate
+b <- ggplot(data_2023) +
   geom_sf(aes(fill = crime_rate), color = "white") +
+  geom_sf(
+    data = subset(data_2023, reservations == 1),
+    fill = NA,
+    color = "black",
+    size = .75
+  ) +
+  # Black dot at centroid for top cities
+  geom_sf(
+    data = city_centroids,
+    color = "black", size = 1.8
+  ) +
   scale_fill_viridis_c(
     option = "plasma",
     name = "Crime Rates"
@@ -58,11 +90,14 @@ b <- mapping_yearly_data |>
     plot.margin = margin(0, 0, 0, 0)
   )
 
+# Combine with patchwork
 a + b +
   plot_annotation(
     title = "Overall Population Analysis (2023)",
     subtitle = "Population by County and Yearly Trends",
-    caption = "Source: ACS 5-Year Estimates"
+    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations
+    Source: ACS 5-Year Estimates and FBI Crime data"
+    
   )
 ```
 
@@ -348,47 +383,92 @@ acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
   mutate(
     log_pct_non_white = log(pct_non_white),
     log_persons_per_m2 = log(persons_per_m2),
-    log_officers = log(officers)
+    log_officers = log(officers),
+    log_crime_rate = log(officers)
   )
 
 # removed "pct_children_missing_parents", "msp_main_counties", "Binge.drinking.prevalence", 
 # "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
+# "pct_lessthan_5kincome" removed due to -.7 correlation with median income and being a faulty measure over time
 
-modeling_vars <- c("log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
+modeling_vars <- c("log_officers", "median_household_income_acs5", 
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2",
+  "reservations", "top_cities"
 )
 
 formula <- reformulate(modeling_vars, response = "crime_rate")
 
-# Fit your models
+# Fit models
 pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
 post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
 
-full_formula     <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
-total_model      <- lm(full_formula, data = acs_5_yearly_data)
+full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
+total_model  <- lm(full_formula, data = acs_5_yearly_data)
 
-# Combine tidy summaries
+# Helper: get both normal and robust stats
+model_tidy_with_robust <- function(model) {
+  # Regular (classical OLS) tidy
+  normal <- tidy(model)
+  
+  # Robust (HC3) tidy
+  robust_vcov <- vcovHC(model, type = "HC3")
+  robust <- coeftest(model, vcov. = robust_vcov) |> tidy()
+  
+  # Combine both
+  normal |>
+    select(term, estimate, std.error_normal = std.error) |>
+    left_join(
+      robust |> select(term, std.error_robust = std.error, p.value),
+      by = "term"
+    )
+}
+
+# Combine all models
 combined <- bind_rows(
-  tidy(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
-  tidy(post_covid_model) |> mutate(Model = "Post-COVID"),
-  tidy(total_model)      |> mutate(Model = "Full Model")
-)|>
-  select(Model, term, estimate, std.error, p.value) |>
-  mutate(across(c(std.error, p.value), ~ round(., 3)))
+  model_tidy_with_robust(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
+  model_tidy_with_robust(post_covid_model) |> mutate(Model = "Post-COVID"),
+  model_tidy_with_robust(total_model)      |> mutate(Model = "Full Model")
+) |>
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(Model, term, estimate, std.error_normal, std.error_robust, p.value)
 
-pre_rows  <- 1:nrow(tidy(pre_covid_model))
-post_rows <- (max(pre_rows)+1):(max(pre_rows)+nrow(tidy(post_covid_model)))
-full_rows <- (max(post_rows)+1):(max(post_rows)+nrow(tidy(total_model)))
+# Compute row ranges for grouped rows
+pre_rows  <- which(combined$Model == "Pre-COVID")
+post_rows <- which(combined$Model == "Post-COVID")
+full_rows <- which(combined$Model == "Full Model")
 
-# Create the table with grouped rows
-kbl(combined, caption = "Regression Models with Grouped Rows") |>
+# Create the grouped kable table
+kbl(combined, caption = "Regression Models with Classical & Robust Standard Errors (HC3)") |>
   kable_styling("striped", full_width = FALSE) |>
-  group_rows("Pre-COVID", pre_rows[1], pre_rows[length(pre_rows)]) |>
-  group_rows("Post-COVID", post_rows[1], post_rows[length(post_rows)]) |>
-  group_rows("Full Model", full_rows[1], full_rows[length(full_rows)])
+  group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
+  group_rows("Post-COVID", min(post_rows), max(post_rows)) |>
+  group_rows("Full Model", min(full_rows), max(full_rows))
 
 
+# Compute model metrics
+model_metrics <- tibble(
+  Model    = c("Pre-COVID", "Post-COVID", "Full Model"),
+  R2       = c(
+    summary(pre_covid_model)$r.squared,
+    summary(post_covid_model)$r.squared,
+    summary(total_model)$r.squared
+  ),
+  Adj_R2   = c(
+    summary(pre_covid_model)$adj.r.squared,
+    summary(post_covid_model)$adj.r.squared,
+    summary(total_model)$adj.r.squared
+  ),
+  RMSE     = c(
+    sqrt(mean(residuals(pre_covid_model)^2)),
+    sqrt(mean(residuals(post_covid_model)^2)),
+    sqrt(mean(residuals(total_model)^2))
+  )
+) |>
+  mutate(across(c(R2, Adj_R2, RMSE), ~ round(., 3)))
 
+# Create the kable table
+kbl(model_metrics, caption = "Model Performance Summary (R², Adjusted R², RMSE)") |>
+  kable_styling("striped", full_width = FALSE)
 
 
 # residuals vs fits

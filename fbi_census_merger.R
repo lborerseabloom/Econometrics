@@ -46,7 +46,15 @@ mapping_yearly_data <- crime_data |>
   # find total crime rates using the aggregated columns
   mutate(crime_rate =    (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
          homicide_rate = homicides/total_population_acs5)|>
-  
+  mutate(
+  top_cities = ifelse(county %in% c("RAMSEY", "HENNEPIN", "OLMSTED", "ST. LOUIS", "STEARNS"), 1, 0),
+
+  reservations = ifelse(county %in%
+                        c("ITASCA", "KOOCHICHING", "ST. LOUIS", "CARLTON", "COOK",
+                          "BELTRAMI", "CASS", "HUBBARD", "REDWOOD", "MILLE LACS",
+                          "GOODHUE", "SCOTT", "YELLOW MEDICINE", "BECKER", "CLEARWATER", "MAHNOMEN",
+                          "LAKE OF THE WOODS", "MARSHALL", "PENNINGTON", "POLK", "RED LAKE"), 1, 0)
+  )|>
   st_as_sf() # save as sf object for mapping
 
 
@@ -149,7 +157,13 @@ acs_5_yearly_data <- crime_data |>
          
          post_covid = ifelse(year>=2020, 1, 0),
          
-         msp_main_counties = ifelse(county %in% c("RAMSEY", "HENNEPIN"), 1, 0),
+         top_cities = ifelse(county %in% c("RAMSEY", "HENNEPIN", "OLMSTED", "ST. LOUIS", "STEARNS"), 1, 0),
+         
+         reservations = ifelse(county %in%
+                               c("ITASCA", "KOOCHICHING", "ST. LOUIS", "CARLTON", "COOK",
+                                 "BELTRAMI", "CASS", "HUBBARD", "REDWOOD", "MILLE LACS",
+                                 "GOODHUE", "SCOTT", "YELLOW MEDICINE", "BECKER", "CLEARWATER", "MAHNOMEN",
+                                 "LAKE OF THE WOODS", "MARSHALL", "PENNINGTON", "POLK", "RED LAKE"), 1, 0),
          
          pct_non_white = (1 - (white_population_acs5 / total_population_acs5))* 100,
          
@@ -161,7 +175,7 @@ acs_5_yearly_data <- crime_data |>
   
   # final cleaning
   drop_na(total_population_acs5)|>  # drop years that acs1 doesn't cover
-  select(-acs1_vars, -geometry)  # remove acs1 pop estimates and geometry
+  select(-all_of(acs1_vars), -geometry)  # remove acs1 pop estimates and geometry
 
 
 saveRDS(acs_5_yearly_data, "data/acs_5_yearly_data.rds")
