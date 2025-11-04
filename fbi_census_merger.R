@@ -17,7 +17,7 @@ crime_data <- crime_data|>
   left_join(mapping, by = join_by(ori), relationship = "many-to-many")|> # join in mapping variables
   left_join(acs_1yr_ts, by = join_by(GEOID, year))|> # join to acs1 data by county and year
   left_join(acs_5yr_ts, by = join_by(GEOID, year), suffix = c("_acs1", "_acs5"))|> # join to acs5 data by county and year
-  distinct(series, month, .keep_all = TRUE)|> # drop some duplicates left over
+  distinct(series, month, .keep_all = TRUE)|> # drop some duplicate rows left over
   group_by(month)|>
   drop_na(homicides)|> # drop na homicide years, primarily from smaller depts early on in the data
   ungroup()

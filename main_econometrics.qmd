@@ -132,7 +132,6 @@ yearly_ts <- crime_data |>
 combined_ts <- bind_rows(monthly_ts, yearly_ts)
 
 
-
 # show the reasons for using yearly data due to how monthly is reported
 ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
   geom_line(size = 1) +
@@ -145,8 +144,6 @@ theme(
   legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
   legend.title = element_text("Time Period")
 )
-
-
 
 
 # refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
@@ -541,8 +538,7 @@ acs_5_yearly_data|>
 ```
 
 ```{r differenced_data}
-# dont see too much when taking the difference and comparing to explanatory census variables
-# might need to average/ estimate with the crime data in a similar way to the acs5 grouping
+
 modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
 )
