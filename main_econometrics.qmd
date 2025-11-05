@@ -189,46 +189,46 @@ theme(
   legend.title = element_blank()
 )
 
-
-scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / max(yearly_ts$crime_rate, na.rm = TRUE)
-
-ggplot(yearly_ts, aes(x = year)) +
-  # Homicides per capita (true scale, left axis)
-  geom_line(aes(y = homicides_pc, color = "Homicides per Capita"), size = 1) +
-  geom_point(aes(y = homicides_pc, color = "Homicides per Capita"), size = 2) +
-  
-  # General crime rate (scaled, right axis)
-  geom_line(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 1, linetype = "dashed") +
-  geom_point(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 2) +
-  
-  # Two axes
-  scale_y_continuous(
-    name = "Homicides per Capita",
-    sec.axis = sec_axis(~ . / scale_factor, name = "General Crime Rate")
-  ) +
-  
-  # Colors and labels
-  scale_color_manual(
-    values = c("Homicides per Capita" = "darkblue", 
-               "General Crime Rate" = "purple")
-  ) +
-  theme_minimal() +
-  labs(
-    title = "Homicides per Capita vs General Crime Rate (ACS1 Counties)",
-    x = "Year",
-    color = "",
-    caption = "Source: FBI Crime data and ACS1 estimates"
-  )
-
-
-
-acs_1_yearly_data|>
-  ggplot(aes(x = homicides/total_population_acs1))+
-  geom_density()+
-  theme_minimal()+
-  labs(title = "Density of Minnesota Homicides by County by Year", 
-       x = "Homicides per Capita per Year", y = NULL, 
-       caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
+### commented out homicide plots from before I was doing just crime rate
+# scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / max(yearly_ts$crime_rate, na.rm = TRUE)
+# 
+# ggplot(yearly_ts, aes(x = year)) +
+#   # Homicides per capita (true scale, left axis)
+#   geom_line(aes(y = homicides_pc, color = "Homicides per Capita"), size = 1) +
+#   geom_point(aes(y = homicides_pc, color = "Homicides per Capita"), size = 2) +
+#   
+#   # General crime rate (scaled, right axis)
+#   geom_line(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 1, linetype = "dashed") +
+#   geom_point(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 2) +
+#   
+#   # Two axes
+#   scale_y_continuous(
+#     name = "Homicides per Capita",
+#     sec.axis = sec_axis(~ . / scale_factor, name = "General Crime Rate")
+#   ) +
+#   
+#   # Colors and labels
+#   scale_color_manual(
+#     values = c("Homicides per Capita" = "darkblue", 
+#                "General Crime Rate" = "purple")
+#   ) +
+#   theme_minimal() +
+#   labs(
+#     title = "Homicides per Capita vs General Crime Rate (ACS1 Counties)",
+#     x = "Year",
+#     color = "",
+#     caption = "Source: FBI Crime data and ACS1 estimates"
+#   )
+# 
+# 
+# 
+# acs_1_yearly_data|>
+#   ggplot(aes(x = homicides/total_population_acs1))+
+#   geom_density()+
+#   theme_minimal()+
+#   labs(title = "Density of Minnesota Homicides by County by Year", 
+#        x = "Homicides per Capita per Year", y = NULL, 
+#        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
 
 acs_1_yearly_data|>
   ggplot(aes(x = crime_rate))+
@@ -237,62 +237,6 @@ acs_1_yearly_data|>
   labs(title = "Density of Minnesota Crime Rates by County by Year", 
        x = "Crimes per Capita per Year", y = NULL, 
        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
-```
-
-```{r acs_1_pre_modeling_comparisons}
-### vars to calculate stats across for modeling
-modeling_vars <- c(
-  "homicide_rate", "crime_rate", "periods", "post_covid", "msp_main_counties",
-  "officers", "median_household_income_acs1", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "pct_children_missing_parents", 
-  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
-  "persons_per_household", "persons_per_m2"
-)
-
-### Descriptive stats
-means <- acs_1_yearly_data |>
-  summarise(across(all_of(modeling_vars), ~ mean(.x, na.rm = TRUE)))
-
-sds <- acs_1_yearly_data |>
-  summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
-
-bind_rows(list(mean = means, sd = sds), .id = "stat")|>
-  select(-periods, -post_covid, -msp_main_counties)|>
-  pivot_longer(-stat, names_to = "variable", values_to = "value")|>
-  pivot_wider(names_from = "stat")
-
-### correlation matrix
-# cor is off because of serial and inter county correlation
-target <- "homicide_rate"
-lapply(setdiff(modeling_vars, target), function(var) {
-  test <- cor.test(
-    acs_1_yearly_data[[target]],
-    acs_1_yearly_data[[var]],
-    method = "pearson"
-  )
-  data.frame(
-    variable = var,
-    estimate = test$estimate,
-    p.value = test$p.value
-  )
-}) |> bind_rows()
-```
-
-```{r acs1_modeling}
-# starting mixed effects model with one measure of each social disorganization factor
-# random effect by county to allow for different relationships
-# simple periods variable to account for time series
-model_lag1 <- lmer(crime_rate ~ officers + pct_lessthan_5kincome +
-              pct_highschool_or_greater + pct_children_missing_parents + pct_non_white +
-            Binge.drinking.prevalence + pct_young_males + persons_per_m2 +
-               periods + crime_rate_lag1 + (1 | county), data = acs_1_yearly_data)
-
-# many insignificant predictors
-summary(model_lag1)
-plot(model_lag1)
-
-qqnorm(resid(model_lag1))
-qqline(resid(model_lag1), col = "red")
 ```
 
 ```{r acs_5_pre_modeling_comparisons}
@@ -361,17 +305,6 @@ crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
 kable(crime_correlation, format = "html",
              caption = "Signifigance of correlation with crime rates")|>
 kable_styling("striped")  
-
-acs_5_yearly_data|>
-  ggplot(aes(x = (crime_rate)))+
-  geom_density()+
-  geom_histogram(bins = 15)
-
-acs_5_yearly_data|>
-  ggplot(aes(x = sqrt(crime_rate)))+
-  geom_density()+
-  geom_histogram(bins = 15)
-
 ```
 
 ```{r acs5_modeling}
@@ -479,7 +412,6 @@ chow_test <- strucchange::sctest(total_model, type = "Chow", point = which(acs_5
 
 print(chow_test)
 
-
 # CUMSUM test
 cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5_yearly_data)
 
@@ -494,7 +426,6 @@ RMSE(pre_covid_model$residuals)
 RMSE(post_covid_model$residuals)
 
 # test for equal variances
-
 # .5 bc test suggests sqrt transform 
 bc <- MASS::boxcox(lm(full_formula, data = acs_5_yearly_data))
 var.test(sqrt(acs_5_yearly_data$crime_rate) ~ acs_5_yearly_data$post_covid)
@@ -522,34 +453,24 @@ ggplot(facet_data, aes(x = value, y = .data[[target]])) +
     y = "Crime Rate"
   ) +
   theme_bw()
-
-# why does officers change in significance?
-acs_5_yearly_data|>
-  filter(post_covid == 0)|>
-  ggplot(aes(x = officers, y = crime_rate))+
-  geom_point()+
-  geom_smooth(se = F, method = "lm")
-
-acs_5_yearly_data|>
-  filter(post_covid == 1)|>
-  ggplot(aes(x = officers, y = crime_rate))+
-  geom_point()+
-  geom_smooth(se = F, method = "lm")
 ```
 
 ```{r differenced_data}
-
+# using only variables that can be differenced, look at a first difference linear model
 modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
 )
 
+# difference across all of the data, add in a _diff to the end of the names too
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
   group_by(county)|>
   summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
                    .names = "{.col}_diff"))
 
-modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")  # drop crime_rate, add _diff
+# with the new modeling variables; drop crime_rate, add _diff
+modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")  
 
+# fit linear model
 model_diff <- lm(
   formula = as.formula(
     paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
@@ -557,6 +478,7 @@ model_diff <- lm(
   data = acs_5_yearly_data_diff
 )
 
+# create the same format results table that I have been using
 diff_tbl <- tidy(model_diff) |>
   select(term, estimate, std.error, statistic, p.value) |>
   mutate(

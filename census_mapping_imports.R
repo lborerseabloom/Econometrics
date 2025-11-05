@@ -40,7 +40,7 @@ vars <- c(
 )
 
 vars_dec <- c(
-  total_population_dec      = "P1_001N"      # Total population
+  total_population      = "P1_001N"      # Total population
 )
 
 
@@ -102,8 +102,8 @@ decennial_pop <- get_decennial(
   ) |>
   pivot_wider(names_from = variable, values_from = value)
 
-acs_1yr_ts <- bind_rows(acs_1yr_ts,
-                        decennial_pop|>rename(total_population_1 = total_population_dec))|>
+# add in decennial pop as a sub for 2020 counts
+acs_1yr_ts <- bind_rows(acs_1yr_ts, decennial_pop)|>
   add_count(GEOID) |>       # count how many times each GEOID appears
   filter(n > 1) |>           # remove counties not in acs 1 survey
   select(-n)                  # drop the helper column
