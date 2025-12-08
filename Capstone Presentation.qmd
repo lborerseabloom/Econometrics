@@ -1,0 +1,278 @@
+---
+title: "Capstone Presentation"
+author: "Liam Borer Seabloom"
+format: revealjs
+editor: visual
+---
+
+```{r Package_Data_Imports}
+#| include: false
+
+ library(tidyverse)
+ library(tidycensus)
+
+ library(fpp3)
+ library(sf)
+
+ library(patchwork)
+ library(knitr)
+ library(kableExtra)
+ library(broom)
+ library(Metrics)
+ library(lmtest)
+ library(sandwich)
+ library(lme4)
+
+ acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
+ acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
+ mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
+ crime_data <- readRDS("data/crime_data_merged.rds")
+```
+
+# Introduction
+
+---
+
+## Basis of the Project
+
+- In 1998 J. Mark Norman and Donald E. Arwood published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota”.
+- This paper looked to establish how a variety sociological measures of a society's organization and control affect the crime rates in a community, specifically across counties in Minnesota.
+
+## Goals for the Project
+- Since 1998 there have been many changes in crime and it's determinants, particularly during the COVID-19 pandemic.
+- I hope to expand on this study using similar variables across the same region and answer the question:  **Across Minnesotan counties how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?**
+
+<!-- Do I really need a lit review section? -->
+
+# Procedure
+
+--- 
+
+**In order to answer this question I will follow the steps of:**<br>
+
+1. Collecting Data on Crime Rates in Minnesotan counties.<br>
+2. Collecting similar or the same data used in the original Norman and Arwood (1998) paper on the explanatory variables used for crime rates.<br>
+3. Analyzing how the relationships between crime and its determinants have changed since the original 1998 paper as well as before and after the COVID-19 pandemic.
+
+## Step 1
+
+::: {.center}
+![](images/FBIWebsite.png)
+:::
+
+## Step 2
+
+```{r Example_Tidycensus_Imports}
+#| eval: false
+#| echo: true
+# Pulls 5 year ACS estimates for all variables at county level for MN
+years = c(2018, 2023) # Want to compare pre-COVID years 2014-18 vs 2019-23 
+acs_5yr_ts <- map_df(years, function(y) {
+  get_acs(
+    geography = "county",
+    survey = "acs5",
+    variables = vars, # predefined list of census variables to download
+    state = "MN",
+    year = y,
+    geometry = TRUE
+  ) |>
+    select(GEOID, variable, estimate) |>
+    mutate(
+      GEOID = as.character(GEOID),
+      year = y
+    ) |>
+    pivot_wider(names_from = variable, values_from = estimate)
+})
+```
+
+# Step 3: Analysis
+
+# Time Series Plots 
+
+## Homicides Over Time
+```{r Homicides_Over_Time}
+
+# Monthly totals
+monthly_ts <- crime_data |>
+  group_by(month) |>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  mutate(type = "Monthly")  # Add type for plotting
+
+# Yearly totals
+yearly_ts <- crime_data |>
+  group_by(year, county) |>
+  summarise(
+    population = first(total_population_acs1),  # take one value per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>
+  summarise(
+    population = sum(population, na.rm = TRUE),  # now only sum once per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    month = as.Date(paste0(year, "-01-01")),
+    type = "Yearly"
+  ) |>
+  select(month, homicides, population, type)
+
+# plotting df
+combined_ts <- bind_rows(monthly_ts, yearly_ts)
+
+
+# show the reasons for using yearly data due to how monthly is reported
+ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
+  geom_line(size = 1) +
+  geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
+  scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
+  theme_minimal() +
+  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")+
+theme(
+  legend.position = c(0.1, 0.8),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_text("Time Period")
+)
+
+
+# refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
+yearly_ts <- acs_1_yearly_data|>
+  group_by(year)|>
+  summarise(population = sum(total_population_acs1),
+            homicides_pc = sum(homicides)/sum(total_population_acs1),
+            across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum))|>
+  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/population)
+```
+
+## Homicides Versus Population
+
+```{r Homicides_Versus_Population}
+# show homicides vs population relationship
+# Compute a scaling factor to map population into homicide scale
+scale_factor <- max(yearly_ts$crime_rate, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
+
+ggplot(yearly_ts, aes(x = year)) +
+  # Population line (left axis, true scale)
+  geom_line(aes(y = population, color = "Population"), size = 1, linetype = "dashed") +
+  geom_point(aes(y = population, color = "Population"), size = 2) +
+  
+  # Homicides line (right axis, scaled down)
+  geom_line(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 1) +
+  geom_point(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 2) +
+  
+  scale_y_continuous(
+    name = "Population",
+    sec.axis = sec_axis(~ . * scale_factor, name = "General Crime Rate")
+  ) +
+  scale_color_manual(
+    values = c("Population" = "firebrick", "General Crime Rate" = "purple")
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Minnesota Population vs Crime Rates Over Time for ACS1 Counties",
+    x = "Year",
+    color = "",
+    caption = "Source: ACS1 estimates; using Decennial counts for 2020"
+  )+
+theme(
+  legend.position = c(0.2, 0.2),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_blank()
+)
+```
+
+
+## Crime Rates and Populations
+
+```{r crime_and_pop_mapping}
+#| warning: False
+  
+# Base map for year 2023
+data_2023 <- mapping_yearly_data |> 
+  filter(year == 2023)
+
+# Compute centroids only for the top cities
+city_centroids <- data_2023 |>
+  filter(top_cities == 1) |>
+  st_centroid()
+
+# Plot A — population
+a <- ggplot(data_2023) +
+  geom_sf(aes(fill = total_population_acs5), color = "white") +
+  # black border for reservations
+  geom_sf(
+    data = subset(data_2023, reservations == 1),
+    fill = NA,
+    color = "black",
+    size = .75
+  ) +
+  # Black dot at centroid for top cities
+  geom_sf(
+    data = city_centroids,
+    color = "black", size = 1.8
+  ) +
+  scale_fill_viridis_c(
+    option = "plasma",
+    trans = "log10",
+    name = "Total Population",
+    labels = scales::label_number(scale_cut = scales::cut_short_scale())
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+    plot.margin = margin(0, 0, 0, 0)
+  )
+
+# Plot B — crime rate
+b <- ggplot(data_2023) +
+  geom_sf(aes(fill = crime_rate), color = "white") +
+  geom_sf(
+    data = subset(data_2023, reservations == 1),
+    fill = NA,
+    color = "black",
+    size = .75
+  ) +
+  # Black dot at centroid for top cities
+  geom_sf(
+    data = city_centroids,
+    color = "black", size = 1.8
+  ) +
+  scale_fill_viridis_c(
+    option = "plasma",
+    name = "Crime Rates"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "bottom",
+    plot.margin = margin(0, 0, 0, 0)
+  )
+
+# Combine with patchwork
+a + b +
+  plot_annotation(
+    title = "Overall Population Analysis (2023 ACS 5 Year Estimates)",
+    subtitle = "Population by County and Yearly Trends",
+    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations
+    Source: ACS 5-Year Estimates and FBI crime data"
+    
+  )
+```
+
+## Summary Statistics
+
+## Correlations
+
+## Main Models
+
+## Differenced Model
+
+## Model Evaluations
+
+# Results
+
+## Results (1)
