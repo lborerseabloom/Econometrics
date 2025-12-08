@@ -187,6 +187,10 @@
       margin-right: 0; 
     }
   </style>
+  <script src="Capstone Presentation_files/libs/kePrint-0.0.1/kePrint.js"></script>
+
+  <link href="Capstone Presentation_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -291,9 +295,172 @@ Liam Borer Seabloom
 <img data-src="Capstone-Presentation_files/figure-revealjs/crime_and_pop_mapping-1.png" width="960" class="r-stretch"></section>
 <section id="summary-statistics" class="slide level2">
 <h2>Summary Statistics</h2>
+<div class="columns">
+<div class="column">
+<div style="margin-top: 75px;">
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-striped caption-top" data-quarto-postprocess="true" style="font-size: 15px; margin-left: auto; margin-right: auto;">
+<caption>Signifigance of changes in the mean values of Cesus variables</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">pre</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">post</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">median_household_income_acs5</td>
+<td style="text-align: right;">59563.94253</td>
+<td style="text-align: right;">75757.39080</td>
+<td style="text-align: right;">0.00000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pct_lessthan_5kincome</td>
+<td style="text-align: right;">4.77714</td>
+<td style="text-align: right;">3.87940</td>
+<td style="text-align: right;">0.00001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_non_white</td>
+<td style="text-align: right;">8.67089</td>
+<td style="text-align: right;">12.71564</td>
+<td style="text-align: right;">0.00094</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pct_highschool_or_greater</td>
+<td style="text-align: right;">91.09053</td>
+<td style="text-align: right;">92.27239</td>
+<td style="text-align: right;">0.00283</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_children_missing_parents</td>
+<td style="text-align: right;">33.37682</td>
+<td style="text-align: right;">32.44493</td>
+<td style="text-align: right;">0.00620</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">crime_rate</td>
+<td style="text-align: right;">0.01452</td>
+<td style="text-align: right;">0.01126</td>
+<td style="text-align: right;">0.00800</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_young_males</td>
+<td style="text-align: right;">3.19407</td>
+<td style="text-align: right;">3.36525</td>
+<td style="text-align: right;">0.04481</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">officers</td>
+<td style="text-align: right;">2.75161</td>
+<td style="text-align: right;">2.70244</td>
+<td style="text-align: right;">0.70293</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">persons_per_household</td>
+<td style="text-align: right;">2.46297</td>
+<td style="text-align: right;">2.46678</td>
+<td style="text-align: right;">0.89129</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">persons_per_m2</td>
+<td style="text-align: right;">0.00005</td>
+<td style="text-align: right;">0.00005</td>
+<td style="text-align: right;">0.94904</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Binge.drinking.prevalence</td>
+<td style="text-align: right;">23.19651</td>
+<td style="text-align: right;">23.19651</td>
+<td style="text-align: right;">1.00000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div><div class="column">
+<p><img data-src="images/SummaryStats.png"></p>
+</div></div>
 </section>
 <section id="correlations" class="slide level2">
 <h2>Correlations</h2>
+<div class="columns">
+<div class="column">
+<div style="margin-top: 75px;">
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-striped caption-top" data-quarto-postprocess="true" style="font-size: 15px; margin-left: auto; margin-right: auto;">
+<caption>Signifigance of correlation with crime rates</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">persons_per_m2</td>
+<td style="text-align: right;">0.4696967</td>
+<td style="text-align: right;">0.0000000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pct_non_white</td>
+<td style="text-align: right;">0.4532249</td>
+<td style="text-align: right;">0.0000000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Binge.drinking.prevalence</td>
+<td style="text-align: right;">-0.3263230</td>
+<td style="text-align: right;">0.0000125</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">persons_per_household</td>
+<td style="text-align: right;">0.2595443</td>
+<td style="text-align: right;">0.0005434</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_lessthan_5kincome</td>
+<td style="text-align: right;">0.1924299</td>
+<td style="text-align: right;">0.0109639</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pct_young_males</td>
+<td style="text-align: right;">0.1771871</td>
+<td style="text-align: right;">0.0193380</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_highschool_or_greater</td>
+<td style="text-align: right;">-0.1715511</td>
+<td style="text-align: right;">0.0236104</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">officers</td>
+<td style="text-align: right;">0.1292337</td>
+<td style="text-align: right;">0.0892144</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_children_missing_parents</td>
+<td style="text-align: right;">0.0856260</td>
+<td style="text-align: right;">0.2612643</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">median_household_income_acs5</td>
+<td style="text-align: right;">-0.0228655</td>
+<td style="text-align: right;">0.7645723</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div><div class="column">
+<p><img data-src="images/Correlations.png"></p>
+</div></div>
 </section>
 <section id="main-models" class="slide level2">
 <h2>Main Models</h2>

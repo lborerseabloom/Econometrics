@@ -265,8 +265,101 @@ a + b +
 
 ## Summary Statistics
 
-## Correlations
+::: columns
 
+::: column
+<div style="margin-top: 75px;">
+```{r Summary_Stats}
+### vars to calculate stats across for modeling
+modeling_vars <- c(
+  "crime_rate",
+  "officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "pct_children_missing_parents", 
+  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
+  "persons_per_household", "persons_per_m2"
+)
+
+### t test across pre/post covid for all explanatory variables
+pvals <- acs_5_yearly_data |>
+  select(all_of(modeling_vars), post_covid) |>
+  pivot_longer(-post_covid, names_to = "variable", values_to = "value") |>
+  group_by(variable) |>
+  summarise(
+    ttest = list(t.test(value ~ post_covid, data = cur_data(), var.equal = FALSE)),
+    .groups = "drop"
+  ) |>
+  mutate(p.value = map_dbl(ttest, ~ .x$p.value)) |>
+  select(variable, p.value)
+
+### Descriptive stats
+summary_stats <- lapply(c(0,1), function(covid_indicatior){
+  means <- acs_5_yearly_data |>
+    filter(post_covid == covid_indicatior)|>
+  summarise(across(all_of(modeling_vars), ~ mean(.x, na.rm = TRUE)))
+
+  # drop sd columns for condensed table on slide
+  # sds <- acs_5_yearly_data |>
+  #   filter(post_covid == covid_indicatior)|>
+  #   summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
+  
+  bind_rows(list(mean = means#, sd = sds
+                 ), .id = "stat")|>
+    pivot_longer(-stat, names_to = "variable", values_to = "value")|>
+    pivot_wider(names_from = "stat")
+  
+})|> bind_rows(.id = "year")|> 
+  mutate(year = ifelse(year == "1", "pre", "post"))|>
+  pivot_wider(names_from = "year", values_from = c(mean#, sd
+                                                   ))
+
+summary_stats <- left_join(summary_stats, pvals)|>
+  arrange(p.value)
+
+kable(summary_stats, format = "html", digits = 5,
+             caption = "Signifigance of changes in the mean values of Cesus variables")|>
+kable_styling("striped", font_size = 15) 
+```
+</div>
+:::
+
+::: column
+![](images/SummaryStats.png)
+:::
+
+:::
+## Correlations
+::: columns
+
+::: column
+<div style="margin-top: 75px;">
+```{r Correlations}
+### correlation matrix
+target <- "crime_rate"
+crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
+  test <- cor.test(
+    acs_5_yearly_data[[target]],
+    acs_5_yearly_data[[var]],
+    method = "pearson"
+  )
+  data.frame(
+    variable = var,
+    estimate = test$estimate[[1]],
+    p.value = test$p.value
+  )
+}) |> bind_rows()|> arrange(p.value)
+
+kable(crime_correlation, format = "html",
+             caption = "Signifigance of correlation with crime rates")|>
+kable_styling("striped", font_size = 15) 
+```
+</div>
+:::
+
+::: column
+![](images/Correlations.png)
+:::
+
+:::
 ## Main Models
 
 ## Differenced Model
