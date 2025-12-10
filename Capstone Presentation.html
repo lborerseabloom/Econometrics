@@ -461,9 +461,258 @@ Liam Borer Seabloom
 </div><div class="column">
 <p><img data-src="images/Correlations.png"></p>
 </div></div>
+<p>:::</p>
 </section>
 <section id="main-models" class="slide level2">
 <h2>Main Models</h2>
+<div class="columns">
+<div class="column">
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-striped caption-top" data-quarto-postprocess="true" style="font-size: 11px; width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>Regression Models with Classical &amp; Robust Standard Errors (HC3)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Model</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">std.error_normal</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">std.error_robust</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd" data-grouplength="8">
+<td colspan="6" style="border-bottom: 1px solid"><strong>Pre-COVID</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.0274983</td>
+<td style="text-align: right;">0.026</td>
+<td style="text-align: right;">0.023</td>
+<td style="text-align: right;">0.226</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">log_officers</td>
+<td style="text-align: right;">-0.0014497</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.523</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">median_household_income_acs5</td>
+<td style="text-align: right;">-0.0000005</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">pct_highschool_or_greater</td>
+<td style="text-align: right;">0.0006223</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">log_pct_non_white</td>
+<td style="text-align: right;">0.0048612</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">log_persons_per_m2</td>
+<td style="text-align: right;">0.0045094</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">reservations</td>
+<td style="text-align: right;">0.0042729</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.027</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Pre-COVID</td>
+<td style="text-align: left;">top_cities</td>
+<td style="text-align: right;">0.0036786</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: right;">0.364</td>
+</tr>
+<tr class="even" data-grouplength="8">
+<td colspan="6" style="border-bottom: 1px solid"><strong>Post-COVID</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.0355120</td>
+<td style="text-align: right;">0.029</td>
+<td style="text-align: right;">0.025</td>
+<td style="text-align: right;">0.160</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">log_officers</td>
+<td style="text-align: right;">0.0031652</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.133</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">median_household_income_acs5</td>
+<td style="text-align: right;">-0.0000003</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">pct_highschool_or_greater</td>
+<td style="text-align: right;">0.0004012</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.102</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">log_pct_non_white</td>
+<td style="text-align: right;">0.0027439</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.135</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">log_persons_per_m2</td>
+<td style="text-align: right;">0.0045913</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">reservations</td>
+<td style="text-align: right;">0.0040764</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.003</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; padding-left: 2em;" data-indentlevel="1">Post-COVID</td>
+<td style="text-align: left;">top_cities</td>
+<td style="text-align: right;">0.0079771</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.016</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div><div class="column">
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-striped caption-top" data-quarto-postprocess="true" style="font-size: 11px; width: auto !important; margin-left: auto; margin-right: auto;">
+<caption>Regression Models with Classical &amp; Robust Standard Errors (HC3)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Model</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">std.error_normal</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">std.error_robust</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">0.0326651</td>
+<td style="text-align: right;">0.019</td>
+<td style="text-align: right;">0.015</td>
+<td style="text-align: right;">0.028</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">log_officers</td>
+<td style="text-align: right;">0.0006537</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.704</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">median_household_income_acs5</td>
+<td style="text-align: right;">-0.0000003</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">pct_highschool_or_greater</td>
+<td style="text-align: right;">0.0004661</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">log_pct_non_white</td>
+<td style="text-align: right;">0.0039591</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">log_persons_per_m2</td>
+<td style="text-align: right;">0.0044178</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">reservations</td>
+<td style="text-align: right;">0.0043436</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">top_cities</td>
+<td style="text-align: right;">0.0060426</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.002</td>
+<td style="text-align: right;">0.009</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Full Model</td>
+<td style="text-align: left;">post_covid</td>
+<td style="text-align: right;">-0.0002185</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.001</td>
+<td style="text-align: right;">0.842</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div></div>
 </section>
 <section id="differenced-model" class="slide level2">
 <h2>Differenced Model</h2>

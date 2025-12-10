@@ -31,32 +31,33 @@ editor: visual
 
 # Introduction
 
----
+------------------------------------------------------------------------
 
 ## Basis of the Project
 
-- In 1998 J. Mark Norman and Donald E. Arwood published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota”.
-- This paper looked to establish how a variety sociological measures of a society's organization and control affect the crime rates in a community, specifically across counties in Minnesota.
+-   In 1998 J. Mark Norman and Donald E. Arwood published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota”.
+-   This paper looked to establish how a variety sociological measures of a society's organization and control affect the crime rates in a community, specifically across counties in Minnesota.
 
 ## Goals for the Project
-- Since 1998 there have been many changes in crime and it's determinants, particularly during the COVID-19 pandemic.
-- I hope to expand on this study using similar variables across the same region and answer the question:  **Across Minnesotan counties how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?**
+
+-   Since 1998 there have been many changes in crime and it's determinants, particularly during the COVID-19 pandemic.
+-   I hope to expand on this study using similar variables across the same region and answer the question: **Across Minnesotan counties how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?**
 
 <!-- Do I really need a lit review section? -->
 
 # Procedure
 
---- 
+------------------------------------------------------------------------
 
 **In order to answer this question I will follow the steps of:**<br>
 
-1. Collecting Data on Crime Rates in Minnesotan counties.<br>
-2. Collecting similar or the same data used in the original Norman and Arwood (1998) paper on the explanatory variables used for crime rates.<br>
-3. Analyzing how the relationships between crime and its determinants have changed since the original 1998 paper as well as before and after the COVID-19 pandemic.
+1.  Collecting Data on Crime Rates in Minnesotan counties.<br>
+2.  Collecting similar or the same data used in the original Norman and Arwood (1998) paper on the explanatory variables used for crime rates.<br>
+3.  Analyzing how the relationships between crime and its determinants have changed since the original 1998 paper as well as before and after the COVID-19 pandemic.
 
 ## Step 1
 
-::: {.center}
+::: center
 ![](images/FBIWebsite.png)
 :::
 
@@ -87,9 +88,10 @@ acs_5yr_ts <- map_df(years, function(y) {
 
 # Step 3: Analysis
 
-# Time Series Plots 
+# Time Series Plots
 
 ## Homicides Over Time
+
 ```{r Homicides_Over_Time}
 
 # Monthly totals
@@ -182,7 +184,6 @@ theme(
 )
 ```
 
-
 ## Crime Rates and Populations
 
 ```{r crime_and_pop_mapping}
@@ -265,10 +266,9 @@ a + b +
 
 ## Summary Statistics
 
-::: columns
-
-::: column
-<div style="margin-top: 75px;">
+:::::: columns
+:::: column
+::: {style="margin-top: 75px;"}
 ```{r Summary_Stats}
 ### vars to calculate stats across for modeling
 modeling_vars <- c(
@@ -319,19 +319,19 @@ kable(summary_stats, format = "html", digits = 5,
              caption = "Signifigance of changes in the mean values of Cesus variables")|>
 kable_styling("striped", font_size = 15) 
 ```
-</div>
 :::
+::::
 
 ::: column
 ![](images/SummaryStats.png)
 :::
+::::::
 
-:::
 ## Correlations
-::: columns
 
-::: column
-<div style="margin-top: 75px;">
+:::::: columns
+:::: column
+::: {style="margin-top: 75px;"}
 ```{r Correlations}
 ### correlation matrix
 target <- "crime_rate"
@@ -352,16 +352,96 @@ kable(crime_correlation, format = "html",
              caption = "Signifigance of correlation with crime rates")|>
 kable_styling("striped", font_size = 15) 
 ```
-</div>
+:::
 :::
 
 ::: column
 ![](images/Correlations.png)
 :::
-
 :::
-## Main Models
 
+
+## Main Models
+::: columns
+
+::: column
+```{r pre_post_models}
+# need to arrange data before cum sum
+acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
+  mutate(
+    log_pct_non_white = log(pct_non_white),
+    log_persons_per_m2 = log(persons_per_m2),
+    log_officers = log(officers),
+    log_crime_rate = log(officers)
+  )
+
+# removed "pct_children_missing_parents", "msp_main_counties", "Binge.drinking.prevalence", 
+# "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
+# "pct_lessthan_5kincome" removed due to -.7 correlation with median income and being a faulty measure over time
+
+modeling_vars <- c("log_officers", "median_household_income_acs5", 
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2",
+  "reservations", "top_cities"
+)
+
+formula <- reformulate(modeling_vars, response = "crime_rate")
+
+# Fit models
+pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
+post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
+
+full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
+total_model  <- lm(full_formula, data = acs_5_yearly_data)
+
+# Helper: get both normal and robust stats
+model_tidy_with_robust <- function(model) {
+  # Regular (classical OLS) tidy
+  normal <- tidy(model)
+  
+  # Robust (HC3) tidy
+  robust_vcov <- vcovHC(model, type = "HC3")
+  robust <- coeftest(model, vcov. = robust_vcov) |> tidy()
+  
+  # Combine both
+  normal |>
+    select(term, estimate, std.error_normal = std.error) |>
+    left_join(
+      robust |> select(term, std.error_robust = std.error, p.value),
+      by = "term"
+    )
+}
+
+# Combine all models
+combined <- bind_rows(
+  model_tidy_with_robust(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
+  model_tidy_with_robust(post_covid_model) |> mutate(Model = "Post-COVID"),
+) |>
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(Model, term, estimate, std.error_normal, std.error_robust, p.value)
+
+# Compute row ranges for grouped rows
+pre_rows  <- which(combined$Model == "Pre-COVID")
+post_rows <- which(combined$Model == "Post-COVID")
+full_rows <- which(combined$Model == "Full Model")
+
+# Create the grouped kable table
+kbl(combined, caption = "Regression Models with Classical & Robust Standard Errors (HC3)") |>
+  kable_styling("striped", full_width = FALSE, font_size = 11) |>
+  group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
+  group_rows("Post-COVID", min(post_rows), max(post_rows))
+```
+:::
+::: column
+```{r full_model}
+full_model <- model_tidy_with_robust(total_model)      |> mutate(Model = "Full Model")|>
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(Model, term, estimate, std.error_normal, std.error_robust, p.value)
+
+kbl(full_model, caption = "Regression Models with Classical & Robust Standard Errors (HC3)")|>
+  kable_styling("striped", full_width = FALSE, font_size = 11)
+```
+:::
+:::
 ## Differenced Model
 
 ## Model Evaluations

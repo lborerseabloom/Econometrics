@@ -7,7 +7,6 @@ library(tidycensus)
 
 library(fpp3)
 library(sf)
-
 library(patchwork)
 library(knitr)
 library(kableExtra)
@@ -16,6 +15,8 @@ library(Metrics)
 library(lmtest)
 library(sandwich)
 library(lme4)
+library(packcircles)
+
 
 acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
 acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
@@ -99,6 +100,64 @@ a + b +
     Source: ACS 5-Year Estimates and FBI Crime data"
     
   )
+```
+
+```{r crime_and_pop_mapping}
+all_centroids<-data_2023 |>
+  st_centroid()
+
+pop_scaled <- scales::rescale(all_centroids$total_population_acs5, to = c(1, 100))
+
+
+
+# create packed-circle layout
+packing <- circleProgressiveLayout(
+  pop_scaled,
+  sizetype = "area"
+)
+
+# row numbers for joining 
+all_centroids$id = row(all_centroids)[,1]
+
+packing_df <- packing|>
+  drop_na()|>
+  circleLayoutVertices()|>
+  # join coordinates back
+  left_join(all_centroids, by = join_by(id == id))
+
+# only keep centroids for reservation counties
+top_cities_centroids <- bind_cols(packing, all_centroids)|>
+  filter(top_cities == 1)
+  
+
+ggplot() +
+  # circles
+  geom_polygon(
+    data = packing_df,
+    aes(x, y, group = id, fill = crime_rate),
+    color = NA,
+  ) +
+  # subset data to get borders for reservation counties
+    geom_polygon(
+    data = subset(packing_df, reservations == 1),
+    aes(x, y, group = id),
+    fill = NA,           # no fill
+    color = "black",     # border color
+    linewidth = .5
+  ) +
+  # top_cities centroids
+  geom_point(
+    data = top_cities_centroids,
+    aes(x, y),
+    color = "black",
+    size = 1.5
+  ) +
+  scale_fill_viridis_c(
+    option = "plasma",
+    name = "Crime Rates"
+  ) +
+  coord_equal() +
+  theme_void()
 ```
 
 ```{r homicides_time_series}
