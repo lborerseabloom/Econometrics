@@ -266,8 +266,8 @@ a + b +
 
 ## Summary Statistics
 
-:::::: columns
-:::: column
+::: columns
+::: column
 ::: {style="margin-top: 75px;"}
 ```{r Summary_Stats}
 ### vars to calculate stats across for modeling
@@ -320,17 +320,17 @@ kable(summary_stats, format = "html", digits = 5,
 kable_styling("striped", font_size = 15) 
 ```
 :::
-::::
+:::
 
 ::: column
 ![](images/SummaryStats.png)
 :::
-::::::
+:::
 
 ## Correlations
 
-:::::: columns
-:::: column
+::: columns
+::: column
 ::: {style="margin-top: 75px;"}
 ```{r Correlations}
 ### correlation matrix
@@ -348,7 +348,7 @@ crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
   )
 }) |> bind_rows()|> arrange(p.value)
 
-kable(crime_correlation, format = "html",
+kable(crime_correlation, format = "html", digits = 5,
              caption = "Signifigance of correlation with crime rates")|>
 kable_styling("striped", font_size = 15) 
 ```
@@ -360,12 +360,14 @@ kable_styling("striped", font_size = 15)
 :::
 :::
 
+# Modeling
 
-## Main Models
+## Main Model
+
 ::: columns
-
 ::: column
-```{r pre_post_models}
+::: {style="margin-top: 75px;"}
+```{r full_model}
 # need to arrange data before cum sum
 acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
   mutate(
@@ -411,41 +413,166 @@ model_tidy_with_robust <- function(model) {
     )
 }
 
-# Combine all models
-combined <- bind_rows(
-  model_tidy_with_robust(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
-  model_tidy_with_robust(post_covid_model) |> mutate(Model = "Post-COVID"),
-) |>
-  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
-  select(Model, term, estimate, std.error_normal, std.error_robust, p.value)
+# set font size for tables
+font <- 15
 
-# Compute row ranges for grouped rows
-pre_rows  <- which(combined$Model == "Pre-COVID")
-post_rows <- which(combined$Model == "Post-COVID")
-full_rows <- which(combined$Model == "Full Model")
+full_model <- model_tidy_with_robust(total_model)|> 
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(term, estimate, p.value)
+
+kbl(full_model, caption = "Full Model With Covid Indicator")|>
+  kable_styling("striped", full_width = FALSE, font_size = font)
+
+```
+:::
+:::
+
+::: column
+![](images/Model.png)
+:::
+:::
+
+## Split Models
+
+::: columns
+::: column
+```{r pre_model}
+# Combine model
+pre_covid <- model_tidy_with_robust(pre_covid_model)  |>
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(term, estimate, p.value)
 
 # Create the grouped kable table
-kbl(combined, caption = "Regression Models with Classical & Robust Standard Errors (HC3)") |>
-  kable_styling("striped", full_width = FALSE, font_size = 11) |>
-  group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
-  group_rows("Post-COVID", min(post_rows), max(post_rows))
+kbl(pre_covid, caption = "Pre Covid Model") |>
+  kable_styling("striped", full_width = FALSE, font_size = font)
+```
+:::
+
+::: column
+```{r post_model}
+# Combine model
+post_covid <- model_tidy_with_robust(post_covid_model) |> 
+  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+  select(term, estimate, p.value)
+
+# Create the grouped kable table
+kbl(post_covid, caption = "Post Covid Model") |>
+  kable_styling("striped", full_width = FALSE, font_size = font)
+```
+:::
+:::
+
+## Differenced Model
+
+::: columns
+::: column
+```{r differenced_data}
+# using only variables that can be differenced, look at a first difference linear model
+modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
+)
+
+# difference across all of the data, add in a _diff to the end of the names too
+acs_5_yearly_data_diff <- acs_5_yearly_data|>
+  group_by(county)|>
+  summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
+                   .names = "{.col}_diff"))
+
+# with the new modeling variables; drop crime_rate, add _diff
+modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")  
+
+# fit linear model
+model_diff <- lm(
+  formula = as.formula(
+    paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
+  ),
+  data = acs_5_yearly_data_diff
+)
+
+# create the same format results table that I have been using
+diff_tbl <- tidy(model_diff) |>
+  select(term, estimate, std.error, statistic, p.value) |>
+  mutate(
+    std.error = round(std.error, 3),
+    p.value   = round(p.value, 3)
+  ) |>
+  select(term, estimate, p.value)
+
+kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
+  kable_styling("striped", full_width = FALSE, font_size = font) |>
+  group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
 :::
 ::: column
-```{r full_model}
-full_model <- model_tidy_with_robust(total_model)      |> mutate(Model = "Full Model")|>
-  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
-  select(Model, term, estimate, std.error_normal, std.error_robust, p.value)
+```{r model_metrics}
+# Compute model metrics
+model_metrics <- tibble(
+  Model    = c("Pre-COVID", "Post-COVID", "Full Model", "Difference Model"),
+  R2       = c(
+    summary(pre_covid_model)$r.squared,
+    summary(post_covid_model)$r.squared,
+    summary(total_model)$r.squared,
+    summary(model_diff)$r.squared
+  ),
+  Adj_R2   = c(
+    summary(pre_covid_model)$adj.r.squared,
+    summary(post_covid_model)$adj.r.squared,
+    summary(total_model)$adj.r.squared,
+    summary(model_diff)$adj.r.squared
+  ),
+  RMSE     = c(
+    sqrt(mean(residuals(pre_covid_model)^2)),
+    sqrt(mean(residuals(post_covid_model)^2)),
+    sqrt(mean(residuals(total_model)^2)),
+    sqrt(mean(residuals(model_diff)^2))
+  )
+) |>
+  mutate(across(c(R2, Adj_R2, RMSE), ~ round(., 3)))
 
-kbl(full_model, caption = "Regression Models with Classical & Robust Standard Errors (HC3)")|>
-  kable_styling("striped", full_width = FALSE, font_size = 11)
+# Create the kable table
+kbl(model_metrics, caption = "Model Performance Summary (R², Adjusted R², RMSE)") |>
+  kable_styling("striped", full_width = FALSE, font_size = font)
 ```
 :::
 :::
-## Differenced Model
+
+<!-- 
+## Relationship Analysis
+
+```{r relationship_analysis}
+target <- "crime_rate"
+
+# Pivot the data into long format for faceting
+facet_data <- acs_5_yearly_data |>
+  pivot_longer(
+    cols = all_of(setdiff(modeling_vars, target)),
+    names_to = "variable",
+    values_to = "value"
+  )
+
+# Make one big faceted plot
+ggplot(facet_data, aes(x = value, y = .data[[target]])) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", color = "blue", se = TRUE) +
+  facet_wrap(~ variable, scales = "free_x") +
+  labs(
+    x = "Predictor Value",
+    y = "Crime Rate"
+  ) +
+  theme_bw()
+```
+-->
 
 ## Model Evaluations
+- general overview and comments on models performance, assumptions, and highlights
+- differences from original study
 
-# Results
+## Model Evaluations (2)
+- differences between my models
+- what this all tells us
 
-## Results (1)
+# Conclusions
+
+## Issues and Future goals
+- hope to fit a lasso regression model to better test what variables should be included in my models
+- problems with the data: issues with fbi and census data, not exact same data as used by the original paper
