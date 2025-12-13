@@ -576,3 +576,4 @@ ggplot(facet_data, aes(x = value, y = .data[[target]])) +
 ## Issues and Future goals
 - hope to fit a lasso regression model to better test what variables should be included in my models
 - problems with the data: issues with fbi and census data, not exact same data as used by the original paper
+
