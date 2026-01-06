@@ -16,6 +16,7 @@ library(lmtest)
 library(sandwich)
 library(lme4)
 library(packcircles)
+library(glmnet)
 
 
 acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
@@ -551,3 +552,64 @@ kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
   kable_styling("striped", full_width = FALSE) |>
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
+
+```{r lasso_regression}
+# everything removed manually from main model included here to be selected or not by lasso model
+# "Binge.drinking.prevalence" still excluded due to data not being available and still not available across time
+
+modeling_vars <- c("pct_children_missing_parents",  "pct_young_males", "persons_per_household", 
+                   "log_officers", "pct_lessthan_5kincome", "median_household_income_acs5", 
+                   "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2",
+                   "reservations", "top_cities"
+)
+
+lasso_formula <- reformulate(modeling_vars, response = "crime_rate")
+
+# Create model matrix: lasso works with matrices not normal df
+# use previous formula used in full model with covid indicator included 
+x <- model.matrix(lasso_formula, data = acs_5_yearly_data)[, -1]
+
+# Response vector
+y <- acs_5_yearly_data$crime_rate
+
+# LASSO with cross-validation
+lasso_model <- cv.glmnet(
+  x = x,
+  y = y,
+  alpha = 1,      # lasso alpha
+  nfolds = 1000
+)
+
+#find optimal lambda value that minimizes test MSE
+best_lambda <- lasso_model$lambda.min
+best_lambda
+
+#produce plot of test MSE by lambda value
+plot(lasso_model) 
+
+#find coefficients of best model
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+coef(best_model)
+
+# get predictions for metrics
+y_hat <- predict(lasso_model, s = "lambda.min", newx = x)
+
+# r2
+ss_res <- sum((y - y_hat)^2)
+ss_tot <- sum((y - mean(y))^2)
+
+r2 <- 1 - ss_res / ss_tot
+r2
+
+# adj r2
+beta <- coef(lasso_model, s = "lambda.min")
+p <- sum(beta[-1] != 0)   # exclude intercept
+n <- length(y)
+adj_r2 <- 1 - (1 - r2) * (n - 1) / (n - p - 1)
+adj_r2
+
+# rmse
+rmse <- sqrt(mean((y - y_hat)^2))
+rmse
+```
+
