@@ -19,10 +19,10 @@ library(packcircles)
 library(glmnet)
 
 
-acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
-acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
-mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
-crime_data <- readRDS("data/crime_data_merged.rds")
+acs_5_yearly_data <- readRDS("../data/acs_5_yearly_data.rds")
+acs_1_yearly_data <- readRDS("../data/acs_1_yearly_data.rds")
+mapping_yearly_data <- readRDS("../data/mapping_yearly_data.rds")
+crime_data <- readRDS("../data/crime_data_merged.rds")
 ```
 
 ```{r crime_and_pop_mapping}

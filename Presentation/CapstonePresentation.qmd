@@ -23,10 +23,10 @@ editor: visual
  library(sandwich)
  library(lme4)
 
- acs_5_yearly_data <- readRDS("data/acs_5_yearly_data.rds")
- acs_1_yearly_data <- readRDS("data/acs_1_yearly_data.rds")
- mapping_yearly_data <- readRDS("data/mapping_yearly_data.rds")
- crime_data <- readRDS("data/crime_data_merged.rds")
+ acs_5_yearly_data <- readRDS("../data/acs_5_yearly_data.rds")
+ acs_1_yearly_data <- readRDS("../data/acs_1_yearly_data.rds")
+ mapping_yearly_data <- readRDS("../data/mapping_yearly_data.rds")
+ crime_data <- readRDS("../data/crime_data_merged.rds")
 ```
 
 # Introduction
@@ -570,5 +570,5 @@ ggplot(facet_data, aes(x = value, y = .data[[target]])) +
 
 ## Issues and Future Goals
 
-- Plan to estimate a **lasso regression model** to more systematically determine which variables should be included in the analysis.
-- **Data limitations** remain, particularly inconsistencies between FBI and Census datasets, meaning the constructed data do not exactly replicate those used in the original paper.
+-   Plan to estimate a **lasso regression model** to more systematically determine which variables should be included in the analysis.
+-   **Data limitations** remain, particularly inconsistencies between FBI and Census datasets, meaning the constructed data do not exactly replicate those used in the original paper.
