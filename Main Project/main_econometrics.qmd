@@ -619,4 +619,3 @@ adj_r2
 rmse <- sqrt(mean((y - y_hat)^2))
 rmse
 ```
-
