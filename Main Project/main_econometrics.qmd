@@ -1,6 +1,16 @@
+---
+format: html
+mainfont: arial
+font-size: 11pt
+execute:
+  echo: false
+  eval: false
+  warning: false
+---
 ```{r imports}
 #| verbose: False
 #| warning: False
+#| output: False
 
 library(tidyverse)
 library(tidycensus)
@@ -25,9 +35,165 @@ mapping_yearly_data <- readRDS("../data/mapping_yearly_data.rds")
 crime_data <- readRDS("../data/crime_data_merged.rds")
 ```
 
-```{r crime_and_pop_mapping}
-#| warning: False
+<!--
+# PAPER TODOs
+# Data Collection and Cleaning section detailing whole process
+# Additional discussion of normality and general shape of data in data discussion section
+# Adding further justification and explanation for all methods used
+# Adding in LASSO model to modeling section with its own description
+# Further interpretation of the results and more comparison to the original paper
+# A brief outline of file structure, workflow, and git organization/access
+-->
+
+::: {style="text-align: center; font-size: 21pt;"}
+**Minnesotan Crime: Patterns Over Time and Across COVID**
+
+A Capstone Project for the Department of Math & Statistics  
+
+William Hamilton Borer Seabloom  
+
+Advised by Dr.Tyler George  
+
+Cornell College  
+
+Feb x 2026
+:::
+
+### Introduction  
+
+In 1998 J. Mark Norman and Donald E. Arwood [1] published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota” on how many different sociological measures of a society's organization and control affect the crime rates in a community. These factors were measured across Minnesotan counties and included factors such as education, wages, population density, and police presence. Recently, during late 2019 and 2020 the COVID-19 pandemic changed many factors of our society and disrupted many dimensions of social life. As discussed by Boman and Gallupe in 2020 [3] one of these many impacts was on crime rates, particularly in relation to the more serious violent crimes analyzed in Norman and Arwood’s 1998 study [1]. This raises an important question: Across Minnesotan counties how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?  
+	The main goal of this research is to build on Norman and Arwood’s 1998 study, by not only redoing the analysis with recent data but also looking at how these relationships have changed due to the COVID-19 pandemic. With crime and its prevention being such a large part of our world, and COVID changing many key parts of our society, it is important to reevaluate how typical factors believed to determine crime could have shifted during the COVID-19 pandemic. The state of these relationships today is also important to evaluate for future prediction/prevention of crime.  
+	To investigate this question, the study will compare crime counts from the FBI’s Crime Data Explorer with demographic and socioeconomic indicators drawn from the U.S. Census five-year county-level estimates. The analysis will include all 87 Minnesota counties and will operationalize crime rates as the number of Part I index offenses (homicide, burglary, robbery, aggravated assault, rape, larceny, motor vehicle theft, and arson) per county, normalized by population. This definition of crime aligns with Norman and Arwood’s earlier work [1] while also building on the more serious offenses that Boman and Gallupe (2020) [3] identified as trending upward during the COVID-19 pandemic. Differences in crime rates, averaged across the five-year periods before and after the onset of the pandemic, will be examined to assess whether structural changes occurred. These differences will be evaluated through statistical modeling of both the pre and post-pandemic county-level data, as well as models estimating changes over time.  
+
+### Literature Review  
+
+This project is informed by several key sources: Norman and Arwood (1998) [1], James and Logan (2008) [2], and Boman and Gallupe (2020) [3]. Together, these works provide a foundation for understanding the sociological determinants of crime, the limitations of available data, and the unique disruptions brought about by the COVID-19 pandemic.  
+	Norman and Arwood’s 1998 study analyzed the relationship between crime rates and a variety of sociological measures at the county level in Minnesota. Their findings demonstrated that structural indicators such as households missing one or both parents, alcohol consumption, and migration among other variables are significantly related to crime. This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating updated data and examining how these relationships may have shifted due to the COVID-19 pandemic.  
+	James and Logan’s 2008 report provides an overview of how the FBI collects and reports crime statistics, detailing the methodologies, limitations, and potential sources of bias within Uniform Crime Reporting (UCR) data. Their report is particularly important because it highlights challenges such as underreporting, changes in reporting practices, and differences in local enforcement priorities. James and Logan state that underreporting in the FBI crime data is a large problem, with systematic errors produced from the way that the data is collected. This bias stems from the fact that the only crimes the FBI report are ones that the police have reported to them, and police officers are only aware of citizen reported crimes. Changes in reporting practices also affect this data, in particular the arson and rape counts. The way that rape was defined in this data changed in 2013 to remove the requirement of it being ‘forcible’ increasing the counts of this crime around this period as local law enforcement agencies switched their reporting. Arson counts are also handled differently than other part 1 index crimes, all other crimes are only recorded as the most severe offense if any other crimes were committed but arson is counted on top of any other crime committed. Additionally, arson counts are only recorded if it can be proven that the fire was willfully set skewing the counts further.    
+	These insights are crucial for interpreting the results of this project, as they remind us that observed patterns in county-level crime rates may partly reflect variation in data quality or reporting practices rather than actual changes in criminal activity. By incorporating this perspective, this study can more carefully interpret both the limitations and strengths of using FBI crime statistics in the context of this paper's results.  
+	Boman and Gallupe’s research examines the effects of the COVID-19 pandemic on crime trends, with particular attention to how crime patterns shifted during periods of widespread social disruption. They found that while many types of crime declined during the pandemic, homicide and other serious violent crimes rose due to young people being put in positions where they were particularly close to partners or family members and further from their friends. This change in social structures led to less of the smaller crimes such as vandalism but higher counts of more severe crimes such as homicide and aggravated assault. Their findings suggest that structural shocks, such as a global pandemic, can have heterogeneous effects on different categories of crime. This study directly informs my project, as I will investigate whether similar shifts occurred in Minnesota counties, particularly in the prevalence of violent crime relative to overall crime rates as well as a potential shift in the predictability of crime after the pandemic.  
+	Taken together, these works establish the intellectual groundwork for this project. Norman and Arwood demonstrate how sociological indicators can be systematically linked to crime rates at the county level. James and Logan’s 2008 report provides guidance on the interpretation of crime statistics, ensuring that my analysis acknowledges the methodological challenges of working with FBI data. Finally, Boman and Gallupe highlight the COVID-19 pandemic as a significant structural event that reshaped crime in the United States, motivating the inclusion of a temporal comparison between pre and post-pandemic trends in Minnesota. Building on these sources, my study aims to contribute by both replicating and extending prior methods to assess whether longstanding sociological-crime relationships have been altered by the COVID-19 pandemic.  
+
+### Data Sourcing and Cleaning  
+
+### Data Description  
+
+The data being used in this study consists of two main parts, FBI crime and officer reports as well as U.S Census Bureau county level ACS 5 estimates. A collection of other sources were used to supplement and condense these main sources as well. All of the data and code for this project is publicly available in a Github repository to document the process of this research.  
+	The FBI crime and officer counts were scraped from their data explorer at an agency level across all part 1 index crimes. As discussed by James, Nathan, and Logan Rishard [2], this data contains quite a bit of intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the NLETS ORI directory [4] this data was mapped on to and summarized at the county level.  
+
+```{r homicides_time_series}
+# Monthly totals
+monthly_ts <- crime_data |>
+  group_by(month) |>
+  summarise(homicides = sum(homicides), .groups = "drop") |>
+  mutate(type = "Monthly")  # Add type for plotting
+
+# Yearly totals
+yearly_ts <- crime_data |>
+  group_by(year, county) |>
+  summarise(
+    population = first(total_population_acs1),  # take one value per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(year) |>
+  summarise(
+    population = sum(population, na.rm = TRUE),  # now only sum once per county
+    homicides = sum(homicides, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    month = as.Date(paste0(year, "-01-01")),
+    type = "Yearly"
+  ) |>
+  select(month, homicides, population, type)
+
+# plotting df
+combined_ts <- bind_rows(monthly_ts, yearly_ts)
+
+
+# show the reasons for using yearly data due to how monthly is reported
+ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
+  geom_line(size = 1) +
+  geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
+  scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
+  theme_minimal() +
+  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")+
+theme(
+  legend.position = c(0.1, 0.8),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_text("Time Period")
+)
+```
+
+A brief look at the monthly/yearly plot of homicides over time shows some of the changes in reporting and issues with the data which are present in all crimes. The most obvious of these are the December peaks as many police departments report the whole year in December and the change in reporting practices in 1998 and 2013 where how the FBI receives and records their data changes James and Logan (2008) [2]. However, the grouping of crime data into years removes the month to month reporting problems and allows for more direct comparison to the Census estimates.  
+	County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2014-2018 and 2019-2023 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems discussed on the census website such as sampling and response bias [5]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the latter is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The former nonetheless, will have to be addressed in the final interpretation of the results as a potential source of bias.  
+	With this data the final dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes and dividing it by the total population estimate from the census. The demographic variables used in Norman and Arwood’s 1998 study [1] were then calculated using a variety of Census estimates. There was no measure of alcohol taxes by county as used in their original study, [1] but the Minnesota department of health published a report on the prevalence of binge drinking rates by county [6] which can be used as a similar indicator for alcohol use. An additional factor found to be significant in the original study, [1] migration estimates, were unavailable due to the lack of federal funding for some census estimates.   
+	The final data being used for modeling contains two rows for each of the 87 Minnesota counties representing the pre and post COVID periods with 5 year average estimates for 2014-2018 and 2019-2023 respectively. The variables used in Norman and Arwood’s 1998 study [1] will be tested in their effects on crime rates before and after to address the question of: how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?  
+	
+### Research Findings  
+
+Using this data a few graphical representations of crime rates can help to better understand the nature of the data before modeling. 
+
+```{r homicides_time_series2}
+# refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
+yearly_ts <- acs_1_yearly_data|>
+  group_by(year)|>
+  summarise(population = sum(total_population_acs1),
+            homicides_pc = sum(homicides)/sum(total_population_acs1),
+            across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum))|>
+  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/population)
   
+
+
+# show homicides vs population relationship
+# Compute a scaling factor to map population into homicide scale
+scale_factor <- max(yearly_ts$crime_rate, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
+
+ggplot(yearly_ts, aes(x = year)) +
+  # Population line (left axis, true scale)
+  geom_line(aes(y = population, color = "Population"), size = 1, linetype = "dashed") +
+  geom_point(aes(y = population, color = "Population"), size = 2) +
+  
+  # Homicides line (right axis, scaled down)
+  geom_line(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 1) +
+  geom_point(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 2) +
+  
+  scale_y_continuous(
+    name = "Population",
+    sec.axis = sec_axis(~ . * scale_factor, name = "General Crime Rate")
+  ) +
+  scale_color_manual(
+    values = c("Population" = "firebrick", "General Crime Rate" = "purple")
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Minnesota Population vs Crime Rates Over Time for ACS1 Counties",
+    x = "Year",
+    color = "",
+    caption = "Source: ACS1 estimates; using Decennial counts for 2020"
+  )+
+theme(
+  legend.position = c(0.2, 0.2),   # normalized coordinates
+  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
+  legend.title = element_blank()
+)
+```
+Using ACS 1 year estimates of population, a yearly plot of crime rates and population reveals a consistent downward trend in crime rates per capita, dropping with a steeper slope than the increase in population. This pattern suggests that crime rates have been declining naturally over time. However, consistent with the predictions in the study by Boman, J.H., Gallupe, O, [3] a notable spike in crime is observed between 2019 and 2020, coinciding with the onset of the COVID-19 pandemic. Following this deviation, crime rates decline again by 2023, resuming the pre-pandemic trend. This indicates that the pandemic period represents a temporary disturbance rather than a lasting structural shift in Minnesotan crime trends.  
+
+```{r homicides_time_series3}
+# further analysis of normality and distribution of data
+# acs_1_yearly_data|>
+#   ggplot(aes(x = crime_rate))+
+#   geom_density()+
+#   theme_minimal()+
+#   labs(title = "Density of Minnesota Crime Rates by County by Year", 
+#        x = "Crimes per Capita per Year", y = NULL, 
+#        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
+```
+
+```{r crime_and_pop_mapping}
+
 # Base map for year 2023
 data_2023 <- mapping_yearly_data |> 
   filter(year == 2023)
@@ -103,201 +269,7 @@ a + b +
   )
 ```
 
-```{r crime_and_pop_mapping}
-all_centroids<-data_2023 |>
-  st_centroid()
-
-pop_scaled <- scales::rescale(all_centroids$total_population_acs5, to = c(1, 100))
-
-
-
-# create packed-circle layout
-packing <- circleProgressiveLayout(
-  pop_scaled,
-  sizetype = "area"
-)
-
-# row numbers for joining 
-all_centroids$id = row(all_centroids)[,1]
-
-packing_df <- packing|>
-  drop_na()|>
-  circleLayoutVertices()|>
-  # join coordinates back
-  left_join(all_centroids, by = join_by(id == id))
-
-# only keep centroids for reservation counties
-top_cities_centroids <- bind_cols(packing, all_centroids)|>
-  filter(top_cities == 1)
-  
-
-ggplot() +
-  # circles
-  geom_polygon(
-    data = packing_df,
-    aes(x, y, group = id, fill = crime_rate),
-    color = NA,
-  ) +
-  # subset data to get borders for reservation counties
-    geom_polygon(
-    data = subset(packing_df, reservations == 1),
-    aes(x, y, group = id),
-    fill = NA,           # no fill
-    color = "black",     # border color
-    linewidth = .5
-  ) +
-  # top_cities centroids
-  geom_point(
-    data = top_cities_centroids,
-    aes(x, y),
-    color = "black",
-    size = 1.5
-  ) +
-  scale_fill_viridis_c(
-    option = "plasma",
-    name = "Crime Rates"
-  ) +
-  coord_equal() +
-  theme_void()
-```
-
-```{r homicides_time_series}
-# Monthly totals
-monthly_ts <- crime_data |>
-  group_by(month) |>
-  summarise(homicides = sum(homicides), .groups = "drop") |>
-  mutate(type = "Monthly")  # Add type for plotting
-
-# Yearly totals
-yearly_ts <- crime_data |>
-  group_by(year, county) |>
-  summarise(
-    population = first(total_population_acs1),  # take one value per county
-    homicides = sum(homicides, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  group_by(year) |>
-  summarise(
-    population = sum(population, na.rm = TRUE),  # now only sum once per county
-    homicides = sum(homicides, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  mutate(
-    month = as.Date(paste0(year, "-01-01")),
-    type = "Yearly"
-  ) |>
-  select(month, homicides, population, type)
-
-# plotting df
-combined_ts <- bind_rows(monthly_ts, yearly_ts)
-
-
-# show the reasons for using yearly data due to how monthly is reported
-ggplot(combined_ts, aes(x = month, y = homicides, color = type)) +
-  geom_line(size = 1) +
-  geom_point(data = subset(combined_ts, type == "Yearly"), size = 2) +  # emphasize yearly points
-  scale_color_manual(values = c("Monthly" = "steelblue", "Yearly" = "darkblue")) +
-  theme_minimal() +
-  labs(title = "Minnesota Homicides Over Time", x = "Date", y = "Homicides", color = "Time Period")+
-theme(
-  legend.position = c(0.1, 0.8),   # normalized coordinates
-  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
-  legend.title = element_text("Time Period")
-)
-
-
-# refactor yearly_ts data to only contain acs1 counties to compare homicide rates to population counts
-yearly_ts <- acs_1_yearly_data|>
-  group_by(year)|>
-  summarise(population = sum(total_population_acs1),
-            homicides_pc = sum(homicides)/sum(total_population_acs1),
-            across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), sum))|>
-  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/population)
-  
-
-
-# show homicides vs population relationship
-# Compute a scaling factor to map population into homicide scale
-scale_factor <- max(yearly_ts$crime_rate, na.rm = TRUE) / max(yearly_ts$population, na.rm = TRUE)
-
-ggplot(yearly_ts, aes(x = year)) +
-  # Population line (left axis, true scale)
-  geom_line(aes(y = population, color = "Population"), size = 1, linetype = "dashed") +
-  geom_point(aes(y = population, color = "Population"), size = 2) +
-  
-  # Homicides line (right axis, scaled down)
-  geom_line(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 1) +
-  geom_point(aes(y = crime_rate / scale_factor, color = "General Crime Rate"), size = 2) +
-  
-  scale_y_continuous(
-    name = "Population",
-    sec.axis = sec_axis(~ . * scale_factor, name = "General Crime Rate")
-  ) +
-  scale_color_manual(
-    values = c("Population" = "firebrick", "General Crime Rate" = "purple")
-  ) +
-  theme_minimal() +
-  labs(
-    title = "Minnesota Population vs Crime Rates Over Time for ACS1 Counties",
-    x = "Year",
-    color = "",
-    caption = "Source: ACS1 estimates; using Decennial counts for 2020"
-  )+
-theme(
-  legend.position = c(0.2, 0.2),   # normalized coordinates
-  legend.background = element_rect(fill = alpha("white", 0.6)), # optional transparent box
-  legend.title = element_blank()
-)
-
-### commented out homicide plots from before I was doing just crime rate
-# scale_factor <- max(yearly_ts$homicides_pc, na.rm = TRUE) / max(yearly_ts$crime_rate, na.rm = TRUE)
-# 
-# ggplot(yearly_ts, aes(x = year)) +
-#   # Homicides per capita (true scale, left axis)
-#   geom_line(aes(y = homicides_pc, color = "Homicides per Capita"), size = 1) +
-#   geom_point(aes(y = homicides_pc, color = "Homicides per Capita"), size = 2) +
-#   
-#   # General crime rate (scaled, right axis)
-#   geom_line(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 1, linetype = "dashed") +
-#   geom_point(aes(y = crime_rate * scale_factor, color = "General Crime Rate"), size = 2) +
-#   
-#   # Two axes
-#   scale_y_continuous(
-#     name = "Homicides per Capita",
-#     sec.axis = sec_axis(~ . / scale_factor, name = "General Crime Rate")
-#   ) +
-#   
-#   # Colors and labels
-#   scale_color_manual(
-#     values = c("Homicides per Capita" = "darkblue", 
-#                "General Crime Rate" = "purple")
-#   ) +
-#   theme_minimal() +
-#   labs(
-#     title = "Homicides per Capita vs General Crime Rate (ACS1 Counties)",
-#     x = "Year",
-#     color = "",
-#     caption = "Source: FBI Crime data and ACS1 estimates"
-#   )
-# 
-# 
-# 
-# acs_1_yearly_data|>
-#   ggplot(aes(x = homicides/total_population_acs1))+
-#   geom_density()+
-#   theme_minimal()+
-#   labs(title = "Density of Minnesota Homicides by County by Year", 
-#        x = "Homicides per Capita per Year", y = NULL, 
-#        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
-
-acs_1_yearly_data|>
-  ggplot(aes(x = crime_rate))+
-  geom_density()+
-  theme_minimal()+
-  labs(title = "Density of Minnesota Crime Rates by County by Year", 
-       x = "Crimes per Capita per Year", y = NULL, 
-       caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
-```
+A spatial analysis of the 2023 post-COVID five-year averages for crime rates and population reveals distinct geographic patterns. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, home to the Red Lake Reservation, which can be seen as a clear yellow island in the upper central portion of the crime rate map. It should be noted that the “percent non-white” variable partly captures demographic patterns associated with such reservations.  
 
 ```{r acs_5_pre_modeling_comparisons}
 ### vars to calculate stats across for modeling
@@ -344,9 +316,12 @@ summary_stats <- left_join(summary_stats, pvals)|>
 
 kable(summary_stats, format = "html",
              caption = "Signifigance of changes in Cesus variables")|>
-kable_styling("striped")  
+kable_styling("striped")
+```
 
+An examination of the predictive variables used in [1] indicates no statistically significant changes at the 5% level between the pre and post-COVID periods for officers per 1,000 residents, persons per household, and persons per square meter. The binge drinking prevalence variable here, is a point-estimate and therefore remains constant over time, as expected.  
 
+```{r acs_5_pre_modeling_comparisons2}
 ### correlation matrix
 target <- "crime_rate"
 crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
@@ -366,7 +341,9 @@ kable(crime_correlation, format = "html",
              caption = "Signifigance of correlation with crime rates")|>
 kable_styling("striped")  
 ```
-
+Further correlation analyses show that while several predictors exhibit meaningful and statistically significant relationships with crime rates, there is little evidence of substantial change during the COVID-19 pandemic period. Interestingly, the variables with the least variation pre and post COVID are those most strongly correlated with crime rates at the county level.  
+	A full linear regression model confirms these patterns. Several predictors were excluded due to statistical insignificance (p > 0.5), including percent of children missing one or both parents, msp_main_counties: and indicator for if the county is Ramsey or Hennepin the two main counties for Saint Paul and Minneapolis, Binge.drinking.prevalence, pct_young_males: the percent of the male population between 15 and 25, and persons per household. The percent less than $5000 income variable was also removed due to its high negative correlation (r = -0.7) with median income and its theoretical incorporation of much of the same information.  
+	
 ```{r acs5_modeling}
 # need to arrange data before cum sum
 acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
@@ -433,8 +410,10 @@ kbl(combined, caption = "Regression Models with Classical & Robust Standard Erro
   group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
   group_rows("Post-COVID", min(post_rows), max(post_rows)) |>
   group_rows("Full Model", min(full_rows), max(full_rows))
+```
+The resulting model reveals multiple noteworthy relationships between county-level crime and the sociological factors outlined in Norman, J. Mark and Arwood, Donald E’s study [1]. This model also incorporates the new features: reservations: an indicator for if a county has a reservation in it, top_cities: an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which are counties containing the 5 largest cities in Minnesota, and a pre and post COVID indicator in the full model. The reservations and cities can be seen in the previous crime rates map.  
 
-
+```{r acs5_modeling_performance}
 # Compute model metrics
 model_metrics <- tibble(
   Model    = c("Pre-COVID", "Post-COVID", "Full Model"),
@@ -460,15 +439,53 @@ model_metrics <- tibble(
 kbl(model_metrics, caption = "Model Performance Summary (R², Adjusted R², RMSE)") |>
   kable_styling("striped", full_width = FALSE)
 
+# further residual/ significance analysis
+# # residuals vs fits
+# plot(pre_covid_model, 1)
+# plot(post_covid_model, 1)
+# plot(total_model, 1)
+# 
+# 
+# # Chow test using the 'post_covid' variable as the breakpoint
+# chow_test <- strucchange::sctest(total_model, type = "Chow", point = which(acs_5_yearly_data$post_covid == 1)[1])
+# 
+# print(chow_test)
+# 
+# # CUMSUM test
+# cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5_yearly_data)
+# 
+# # statistical test on the CUMSUM process
+# cumsum_test <- strucchange::sctest(cumsum_process)
+# 
+# print(cumsum_test)
+# plot(cumsum_process)
+# 
+# # rmse before/after
+# RMSE(pre_covid_model$residuals)
+# RMSE(post_covid_model$residuals)
+# 
+# # test for equal variances
+# # .5 bc test suggests sqrt transform 
+# bc <- MASS::boxcox(lm(full_formula, data = acs_5_yearly_data))
+# var.test(sqrt(acs_5_yearly_data$crime_rate) ~ acs_5_yearly_data$post_covid)
+# car::leveneTest(sqrt(acs_5_yearly_data$crime_rate) ~ as.factor(acs_5_yearly_data$post_covid))
+```
+These models do a decent job at predicting crime at the county level with only small variation between each model's predictive power. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in this residuals vs fits plot. In order to fix this a log transformation on crime rate was tried to no effect.  
 
-# residuals vs fits
+```{r acs5_modeling_resids_v_fits}
 plot(pre_covid_model, 1)
-plot(post_covid_model, 1)
-plot(total_model, 1)
-
-
+```
+The first notable finding in the current model concerns median household income, which shows a strong and consistent negative relationship with crime rates across all specifications. Counties with higher median income experience lower levels of crime, and this effect remains stable both before and after the onset of COVID-19. This result supports the idea that people with higher income are less likely to commit any of the part 1 index crimes. In Norman, J. Mark and Arwood, Donald E’s study, the related variable “percent below poverty” was positively associated with crime, although only marginally significant. Because income and poverty are inverse measures of economic well-being, both studies findings are consistent. They indicate that economic deprivation remains one of the most powerful predictors of crime. The stronger and more consistent effect observed in the present analysis suggests that the relationship between income and crime may have become more pronounced over time.  
+	The racial composition (heterogeneity) of counties also shows a strong relationship with crime in the current model. The log of the percent of non-white residents is positively and significantly associated with crime rates in the total and pre-COVID models but interestingly, not in the post COVID model. This suggests that counties with higher proportions of non-white populations tended to have higher recorded crime before COVID but after COVID this effect has dropped. This change in relationship likely reflects broader geographic and demographic patterns rather than a direct causal effect. In particular, areas with higher non-white populations like urban centers and reservations, also tend to be areas with more concentrated economic disadvantage and greater population density. For reservations there is a consistent large and significant effect without much change due to covid. What we observe in the indicator for large cities is also a positive estimate with a large increase in significance and effect after COVID, which could be representative of a change in how crimes are reported or committed. Norman, J. Mark and Arwood, Donald E’s study used two demographic diversity indicators, heterogeneity and migration rates. Those variables were only found to be weakly significant in the earlier study, [1] suggesting that demographic clustering has become a more prominent predictor of crime in recent years.  
+	Educational attainment also demonstrates an interesting shift. In the current model, the percentage of the population with a high school education or greater is positively and significantly related to crime. This finding appears counter intuitive since education is typically viewed as a protective factor. One likely explanation is that higher education levels are associated with more urban and densely populated counties, which tend to have greater recorded crime rates due to both higher population density and higher reporting rates. In contrast, Norman, J. Mark and Arwood, Donald E’s study found that education variables were statistically insignificant [1] which is what is found in the second, post-COVID model. This difference may indicate that, over time, education has become more of a proxy for urbanization rather than a direct measure of social stability and that the more significant large cities variable, like with heterogeneity, explains this better post-COVID.  
+	Population density is another variable that emerges as an important and consistent predictor of crime. In all versions of the current model, the log of persons per square meter is positively and strongly significant. This indicates that denser counties experience higher crime rates. The stability of this relationship before and after COVID-19 suggests that density-related factors, such as increased opportunity and social strain remain key drivers of crime. In Norman, J. Mark and Arwood, Donald E’s study, population density was represented by population per mile, which was only marginally significant [1]. The present study therefore provides stronger evidence that population concentration is a reliable and robust determinant of crime.  
+	Law enforcement presence shows a little more nuanced relationship. Before COVID, the number of officers per capita had no significant relationship with crime. After COVID, however, the coefficient becomes positive and slightly more significant, suggesting that counties with more officers per capita might have had slightly higher recorded crime rates. This may not indicate an increase in crime itself but rather greater enforcement activity or reporting intensity in areas with more officers. Norman, J. Mark and Arwood, Donald E’s study included a similar variable of the police to citizen ratio in a county, also finding it insignificant in its effects [1]. The lack of significance found from 1998 to present and across the COVID-19 pandemic is the opposite of what one would expect from an indicator of police presence which theoretically should be more highly correlated with crime.  
+	Looking at the full model, the post-COVID indicator variable is negative, but not statistically significant. This suggests that, once other socioeconomic and demographic factors are accounted for, overall crime levels did not change significantly in the years following the pandemic. This finding is reinforced by chow and cusum tests that found no evidence of structural change over time as seen below.
+	
+```{r chow_cum_tests}
 # Chow test using the 'post_covid' variable as the breakpoint
-chow_test <- strucchange::sctest(total_model, type = "Chow", point = which(acs_5_yearly_data$post_covid == 1)[1])
+chow_test <- strucchange::sctest(total_model, type = "Chow", point =
+                                   which(acs_5_yearly_data$post_covid == 1)[1])
 
 print(chow_test)
 
@@ -479,20 +496,11 @@ cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5
 cumsum_test <- strucchange::sctest(cumsum_process)
 
 print(cumsum_test)
-plot(cumsum_process)
-
-# rmse before/after
-RMSE(pre_covid_model$residuals)
-RMSE(post_covid_model$residuals)
-
-# test for equal variances
-# .5 bc test suggests sqrt transform 
-bc <- MASS::boxcox(lm(full_formula, data = acs_5_yearly_data))
-var.test(sqrt(acs_5_yearly_data$crime_rate) ~ acs_5_yearly_data$post_covid)
-car::leveneTest(sqrt(acs_5_yearly_data$crime_rate) ~ as.factor(acs_5_yearly_data$post_covid))
 ```
+Fitting a model using the differences between pre and post covid to see if any of the changes in explanatory variables might have had an effect on the change in crime rate, the only variable found to have a statistically significant effect on the change in crime rates is the logarithm of the percentage of the population identified as white. This finding further supports the conclusion that most sociological predictors of crime remained stable throughout the COVID-19 pandemic period but the heterogeneity of the population had significant correlation with the difference. The significance of the percent non-white variable could again be representative of the areas which were most affected by the pandemic, such as urban centers and reservations.  
 
 ```{r relationship_analysis}
+#| eval: false
 target <- "crime_rate"
 
 # Pivot the data into long format for faceting
@@ -552,8 +560,10 @@ kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
   kable_styling("striped", full_width = FALSE) |>
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
+The findings from this study show that the main factors shaping crime in Minnesota have stayed largely consistent over time, even through the social disruptions due to the COVID-19 pandemic. While there were temporary changes in overall crime levels during the pandemic years, the underlying relationships between crime and its economic, demographic, and geographic predictors remain stable.  
 
 ```{r lasso_regression}
+#| eval: false
 # everything removed manually from main model included here to be selected or not by lasso model
 # "Binge.drinking.prevalence" still excluded due to data not being available and still not available across time
 
@@ -619,3 +629,36 @@ adj_r2
 rmse <- sqrt(mean((y - y_hat)^2))
 rmse
 ```
+
+
+### Conclusions  
+Across all models, median household income continues to be one of the strongest predictors of crime. Counties with higher income levels consistently show lower crime rates, supporting the long-standing idea that economic well-being reduces criminal activity. This relationship is even stronger today than it was in Norman and Arwood’s 1998 study, [1] suggesting that economic inequality has become a more powerful influence on community safety.  
+	Population density also remains a key factor. More densely populated counties tend to have higher crime rates, both before and after the COVID-19 pandemic. This likely reflects the social and environmental pressures that come with larger populations such as higher opportunity for crime and more social tension. The consistency of this result suggests that urbanization continues to play a central role in shaping where and how crime occurs.  
+Nevertheless, some relationships have shifted in interesting ways. Education, for example, is only positively related to crime pre-COVID, which at first seems counterintuitive. This is probably because counties with higher levels of education also tend to be more urban, and urban areas naturally have higher reported crime rates due to density and better reporting systems. In this case, education may be capturing the effects of urban living rather than reflecting a direct link between schooling and crime which could also be the reason for the drop in significance post-COVID.  
+	The racial composition of counties also changed in its relationship with crime before and after COVID. Pre-COVID, counties with higher percentages of non-white residents tended to have higher crime rates. After COVID, this relationship weakens and is no longer statistically significant. This could mean that the link between race and recorded crime lessened during the COVID-19 pandemic, possibly due to changes in mobility, enforcement, or reporting practices. It might also reflect the different ways communities were affected by the pandemic, especially in urban centers and areas with reservations.  
+	Law enforcement presence sees some slight pre and post pandemic changes as well. Before COVID and after, the number of officers per capita was not significantly related to crime. After the pandemic, however, the relationship became slightly positive but still not significant. If this increase in effect is real, this would suggest that counties with more officers also saw higher recorded crime rates. Theoretically, one would expect this to have a higher effect due to better reporting, data collection, and more crime where police resources are concentrated.  
+	There are also some limitations that affect how these results should be interpreted. The FBI’s crime data and the U.S. Census Bureau’s ACS estimates both have known problems. FBI data are affected by underreporting, differences in how agencies define and record crimes, and changes in reporting systems that happened around the same time as COVID. The ACS data provide five-year averages rather than yearly snapshots, which smooths out short-term changes and makes it harder to isolate the immediate impact of the COVID-19 pandemic. The models also show signs of uneven variance, even after using robust standard errors, suggesting that certain counties have unique local factors not captured by the available data.  
+Future work could expand this analysis in several ways. From a geo-spatial perspective, models could help capture how crime in one county influences its neighbors, especially around the Twin Cities and other urban areas. Using smaller geographic units like census tracts could reveal more detailed local patterns. Over time, more granular yearly data could allow for time-series or panel analyses to see how relationships change year to year, rather than only comparing pre and post-COVID averages.  
+	It would also be valuable to bring in new types of data. Measures of housing instability, unemployment fluctuations, or community engagement could help explain why some counties deviate from expected trends. Particularly, obtaining an estimate of net migration which was found highly significant in Norman, J. Mark and Arwood, Donald E’s study but not currently available from the U.S Census. Including these newer variables could help capture shifts in social behavior that the variables used in this study miss.  
+	In summary, this study finds that while the COVID-19 pandemic caused a short-term disruption in crime, the broader structural relationships between crime and its main determinants: income, population density, and demographic composition have held steady. Economic inequality remains one of the most important predictors of crime, while urbanization continues to shape where it happens. Education and race have become more complex indicators that now seem to reflect the changing geography and social makeup of Minnesota’s counties rather than direct causes of crime. Although these results suggest that some social forces driving crime are deeply rooted and resilient, some forces such as heterogeneity of a community can be shifted in the face of major global events like the COVID-19 pandemic.  
+	
+::: {style="text-align: center;"}
+**Citations**
+
+[1] Norman, J. Mark & Arwood, Donald E. (1998). *A Social Disorganization Theory of County Crime Rates in Minnesota*. *Great Plains Sociologist*, 11(2), Article 2.  
+<https://openprairie.sdstate.edu/greatplainssociologist/vol11/iss2/2>
+
+[2] James, Nathan & Logan, Rishard. (2008). *How Crime in the United States Is Measured*. Congressional Research Service, Library of Congress.  
+<https://apps.dtic.mil/sti/html/tr/ADA476144/>
+
+[3] Boman, J. H., & Gallupe, O. (2020). *Has COVID-19 Changed Crime? Crime Rates in the United States during the Pandemic*. *American Journal of Criminal Justice*, 45, 537–545.  
+<https://doi.org/10.1007/s12103-020-09551-3>
+
+[4] National Law Enforcement Telecommunications System (NLETS). (1981). *ORI (Originating Agency Identifier) Directory*. U.S. Department of Justice. Grant No. 75-SS-99-6018.
+
+[5] U.S. Census Bureau. (2025, August 19). *Comparing ACS Data*.  
+<https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html>
+
+[6] Minnesota Department of Health. (n.d.). *Alcohol Costs by County* [PDF].  
+<https://www.health.state.mn.us/communities/alcohol/documents/alcoholcostscounty.pdf>
+:::

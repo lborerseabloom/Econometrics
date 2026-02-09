@@ -1,5 +1,4 @@
 project:
   title: "Econometrics project"
 
-editor: visual
-execute-dir: Econometrics   
+editor: source
