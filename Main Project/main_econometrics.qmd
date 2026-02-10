@@ -37,7 +37,6 @@ crime_data <- readRDS("../data/crime_data_merged.rds")
 
 <!--
 # PAPER TODOs
-# Data Collection and Cleaning section detailing whole process
 # Additional discussion of normality and general shape of data in data discussion section
 # Adding further justification and explanation for all methods used
 # Adding in LASSO model to modeling section with its own description
@@ -183,15 +182,30 @@ Using ACS 1 year estimates of population, a yearly plot of crime rates and popul
 
 ```{r homicides_time_series3}
 # further analysis of normality and distribution of data
-# acs_1_yearly_data|>
-#   ggplot(aes(x = crime_rate))+
-#   geom_density()+
-#   theme_minimal()+
-#   labs(title = "Density of Minnesota Crime Rates by County by Year", 
-#        x = "Crimes per Capita per Year", y = NULL, 
-#        caption = "Source: FBI Crime data, and ACS1 estimates; using Decennial counts for 2020")
+acs_5_yearly_data|>
+  filter(year == 2018)|>
+  ggplot(aes(x = crime_rate, fill = as.factor(year))
+         )+
+  geom_density(alpha=.8,data = acs_5_yearly_data|>
+                   filter(year == 2023))+
+  geom_density(alpha=.8)+
+  geom_histogram(alpha=.8,data = acs_5_yearly_data|>
+                   filter(top_cities == 1), color = "black")+
+ annotate(
+    "text", x = Inf, y = 0,
+    label = "Most populated 5 cities each year highlighted",
+    hjust = 1.05, vjust = 1.5, size = 3
+  )+
+  theme_minimal()+
+  theme(axis.text.y  = element_blank(),
+        axis.title.y = element_blank(),
+        legend.position = c(0.9, 0.9),
+        legend.background = element_rect(fill = alpha("white", 0.6)),
+        legend.title = element_blank())+
+  labs(title = "Density of Minnesota Crime Rates by County by Year",
+       x = "Crimes per Capita", y = NULL,
+       fill = "Year")
 ```
-
 ```{r crime_and_pop_mapping}
 
 # Base map for year 2023
@@ -263,9 +277,7 @@ a + b +
   plot_annotation(
     title = "Overall Population Analysis (2023)",
     subtitle = "Population by County and Yearly Trends",
-    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations
-    Source: ACS 5-Year Estimates and FBI Crime data"
-    
+    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations"
   )
 ```
 
