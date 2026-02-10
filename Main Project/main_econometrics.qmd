@@ -41,7 +41,6 @@ crime_data <- readRDS("../data/crime_data_merged.rds")
 <!--
 # PAPER TODOs
 # Adding further justification and explanation for all methods used
-# Adding in LASSO model to modeling section with its own description
 # Further interpretation of the results and more comparison to the original paper
 -->
 ```
