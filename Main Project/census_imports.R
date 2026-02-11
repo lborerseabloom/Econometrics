@@ -46,7 +46,7 @@ vars_dec <- c(
 
 ### 5 year acs estimates ###
 # Pull ACS data for all variables at county level for MN
-years = c(2018, 2023) # Want to compare pre covid 2014-18 vs 2019-23 
+years = c(2019, 2024) # Want to compare pre covid 2014-18 vs 2019-23 
 acs_5yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",

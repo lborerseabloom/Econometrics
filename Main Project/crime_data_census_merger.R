@@ -119,7 +119,7 @@ acs_1_yearly_data <- crime_data |>
 
 
 
-### acs 5 year data to compare 2023 acs5 to 2018 acs5 ###
+### acs 5 year data to compare 2024 acs5 to 2019 acs5 ###
 acs_5_yearly_data <- crime_data |>
   
   # summarize crimes and officer counts by county and year to condense from monthly data
@@ -174,7 +174,7 @@ acs_5_yearly_data <- crime_data |>
          persons_per_m2 = total_population_acs5/area_m2)|>
   
   # final cleaning
-  drop_na(total_population_acs5)|>  # drop years that acs1 doesn't cover
+  drop_na(total_population_acs5)|>  # drop years that acs5 doesn't cover
   select(-all_of(acs1_vars), -geometry)  # remove acs1 pop estimates and geometry
 
 
