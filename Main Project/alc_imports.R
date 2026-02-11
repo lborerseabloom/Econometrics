@@ -24,3 +24,9 @@ alc_tax <- rename(alc_tax,
   filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))
 # alc_tax should now have years*counties of rows, 16*87=1392 in this case
 # since 2024 isn't out yet we have to impute here
+
+# need linear interpolation for 2014, so many years it should be fine to impute here
+ungroup()|>
+  group_by(county)|>
+  arrange(year, .by_group = TRUE)|>
+  mutate(across(all_of(names(acs1_vars)), ~ zoo::na.approx(., x = year, na.rm = FALSE))) |>
