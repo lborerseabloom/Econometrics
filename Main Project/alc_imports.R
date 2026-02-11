@@ -1,7 +1,9 @@
 library(dplyr)
+library(tidyr)
 library(stringr)
 library(purrr)
 library(readxl)
+library(tidyverse)
 
 files <- list.files("data/MN Liquor", full.names = TRUE)
 
@@ -13,20 +15,61 @@ alc_tax <- map_dfr(files, function(file_path){
   } else {
     read_xls(file_path)
   }
+  
 })
 # drop useless columns
-alc_tax <- alc_tax[,1:3] 
+alc_tax <- alc_tax[,1:4] 
 alc_tax <- rename(alc_tax, 
                   year=YEAR, 
                   county=`COUNTY LIQUOR SALES & TAX (ON & OFF-SALE)`, 
-                  sales=`LIQUOR SALES`)|>
+                  sales=`LIQUOR SALES`,
+                  alc_taxes=`LIQUOR GROSS RECEIPTS TAX (AT 2.5%)`)|>
   drop_na(year)|>
-  filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))
-# alc_tax should now have years*counties of rows, 16*87=1392 in this case
-# since 2024 isn't out yet we have to impute here
-
-# need linear interpolation for 2014, so many years it should be fine to impute here
-ungroup()|>
+  filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))|>
+  mutate(year = as.integer(year))|>
+  # alc_tax should now have years*counties of rows, 16*87=1392 in this case
   group_by(county)|>
+  complete(year = min(year):2024) |>
   arrange(year, .by_group = TRUE)|>
-  mutate(across(all_of(names(acs1_vars)), ~ zoo::na.approx(., x = year, na.rm = FALSE))) |>
+  # linear interpolation for 2024, using lm to predict 2024 from all years
+  # mutate(
+  #   sales = {
+  #     # fit the model
+  #     model <- lm(sales ~ year, data = pick(year), na.action = na.exclude)
+  #     # if na fill with models prediction
+  #     ifelse(
+  #       is.na(sales),
+  #       predict(model, newdata = data.frame(year = year)),
+  #       sales
+  #     )
+  #   }
+  # )
+  # carry forward 2022-2023 change for slope as linear interpolation isn't accurate
+  mutate(
+    alc_taxes = if_else(
+      year == 2024 & is.na(alc_taxes),
+      alc_taxes[year == 2023] +
+        (alc_taxes[year == 2023] - alc_taxes[year == 2022]),
+      alc_taxes
+    )
+  )
+
+#alc alc_taxes and sales are almost perfectly correlated
+alc_tax|>
+  group_by(year)|>
+  summarise(sales = sum(sales))|>
+  ggplot(aes(x = year, y=sales))+
+  geom_point()
+
+alc_tax|>
+  group_by(year)|>
+  summarise(alc_taxes = sum(alc_taxes))|>
+  ggplot(aes(x = year, y=alc_taxes))+
+  geom_point()
+
+# drop sales before saving to pass on up the line
+alc_tax <- alc_tax[,c(1,2,4)]
+
+saveRDS(alc_tax, "data/alc_data.rds")
+
+
