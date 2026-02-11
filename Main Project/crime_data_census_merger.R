@@ -4,12 +4,10 @@ library(sf)
 
 crime_data <- readRDS("data/crime_data.rds")
 mapping <- readRDS("data/mapping.rds")
-
 vars <- readRDS("data/vars.rds")
 acs_1yr_ts <- readRDS("data/acs_1yr_ts.rds")
-
 acs_5yr_ts <- readRDS("data/acs_5yr_ts.rds")
-
+alc_data <- readRDS("data/alc_data.rds")
 
 ### final crime data file with all variables ###
 crime_data <- crime_data|>
@@ -128,19 +126,19 @@ acs_5_yearly_data <- crime_data |>
          officers = mean(officers, na.rm = TRUE))|>
   select(-series, -month, -ori, -type)|>
   distinct()|>
-  
   ungroup()|>
+  left_join(alc_data, by = join_by(year, county))|>
   group_by(county)|>
   
-  # add rolling averages of crime stats (last 4 years incl. current)
+  # add rolling averages of crime and alc stats (last 4 years incl. current)
   # this converts crime stats to the same 5 yr rolling avg that is used by acs5
   arrange(county, year) |>
-  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
+  mutate(across(c(alc_taxes, arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
                   slider::slide_dbl(.x, mean, .before = 4, .complete = TRUE))
   ) |>
   
   # find total crime rates using the aggregated columns
-  mutate(crime_rate =    (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
+  mutate(crime_rate = (arson+assaults+burglary+gta+homicides+larceny+rape+robbery)/total_population_acs5,
          homicide_rate = homicides/total_population_acs5)|>
   
   ungroup()|>

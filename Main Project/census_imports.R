@@ -109,30 +109,25 @@ acs_1yr_ts <- bind_rows(acs_1yr_ts, decennial_pop)|>
   select(-n)                  # drop the helper column
 
 
-### bring in and join ai generated csvs, they look pretty accurate ###
+### bring in and join ai generated csv, looks accurate ###
 # just some small refactoring to join the data frames
 mapping <- read.csv("data/ai_mappings.csv") |> 
   mutate(GEOID = as.character(GEOID))
-
-alc_effects <- read.csv("data/ai_alcohol_effects.csv")|>
-  rename(county = Location)|>
-  mutate(county = toupper(county))
 
 # pull out geometry for mapping from the 5 year acs data
 county_geometry <- acs_5yr_ts |>
   select(GEOID, geometry) |>
   distinct(GEOID, .keep_all = TRUE)|>
-  mutate(area_m2   = as.numeric(st_area(geometry))) # extract area
+  mutate(area_m2   = as.numeric(sf::st_area(geometry))) # extract area
 
 # drop geometry to avoid duplicate columns
 acs_5yr_ts <- acs_5yr_ts|> 
   sf::st_drop_geometry()
 
 # join all of the data needed for mapping onto the main crime data
-mapping <- left_join(mapping, county_geometry)|>
-  left_join(alc_effects)
+mapping <- left_join(mapping, county_geometry)
 
-# use RDS to pass geometry without breaking write_csv
+# use RDS to pass sf geometry without breaking write_csv
 saveRDS(vars, "data/vars.rds")
 saveRDS(mapping, "data/mapping.rds")
 saveRDS(acs_1yr_ts, "data/acs_1yr_ts.rds")

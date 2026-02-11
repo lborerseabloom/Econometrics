@@ -26,6 +26,8 @@ alc_tax <- rename(alc_tax,
                   alc_taxes=`LIQUOR GROSS RECEIPTS TAX (AT 2.5%)`)|>
   drop_na(year)|>
   filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))|>
+  mutate(county = ifelse(county == "MCLEOD", "MC LEOD", county),
+         county = ifelse(county == "ST LOUIS", "ST. LOUIS", county))|>
   mutate(year = as.integer(year))|>
   # alc_tax should now have years*counties of rows, 16*87=1392 in this case
   group_by(county)|>
