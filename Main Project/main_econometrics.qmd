@@ -40,11 +40,16 @@ crime_data <- readRDS("../data/crime_data_merged.rds")
 ```{=html}
 <!--
 # PAPER TODOs
-# Edit paper around new alc tax and 2024 census data
-# Cannon Comments
-# Try Interaction terms in the full model
-# Expand variable relationship plots
-# Migration data
+# Fill in new information gathered from:
+#    alc tax
+#    migration
+#    2024 census data
+#    Cannon Comments:
+#       more comparisons with norman and arwood
+#       problems my with gammar
+#       where possible 1yr time series comparisons
+# general structure review with tyler?
+
 -->
 ```
 
