@@ -40,7 +40,11 @@ crime_data <- readRDS("../data/crime_data_merged.rds")
 ```{=html}
 <!--
 # PAPER TODOs
+# Edit paper around new alc tax and 2024 census data
 # Cannon Comments
+# Try Interaction terms in the full model
+# Expand variable relationship plots
+# Migration data
 -->
 ```
 
@@ -71,7 +75,7 @@ Feb x 2026
 
 ![](images/Model.png)
 
-      This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating updated data and examining how these relationships may have shifted due to the COVID-19 pandemic. \
+      This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating updated data and examining how these relationships may have shifted due to the COVID-19 pandemic.\
       Additionally this current study is not able to fully recreate the study conducted by Norman and Arwood as the availability of migration data and alcohol tax has been reduced in recent years. In 2020 the U.S census stopped reporting county-county migration due to disclosure avoidance and concerns about data quality \[7\]. Furthermore, in the following study alcohol consumption is touched on pre and post COVID estimates were not available and the reported values are 2019 estimates from the Minnesota Department of Health \[6\]. Other factors such as the FBI and U.S Census' data collection practices have also changed but a general comparison to their original 1998 study is still possible with the understanding of the potential and real changes in the data's collection and reporting.\
       In order to track some of these changes, James and Logan’s 2008 report provides an overview of how the FBI collects and reports crime statistics, detailing the methodologies, limitations, and potential sources of bias within the Uniform Crime Reporting (UCR) database. Their report is particularly important because it highlights challenges such as underreporting, changes in reporting practices, and differences in local enforcement priorities. James and Logan state that underreporting in the FBI crime data is a large problem, with systematic errors produced from the way that the data is collected. This bias stems from the fact that the only crimes the FBI report are ones that the police have reported to them, and police officers are only aware of citizen reported crimes leading to two large sources of underreporting. Changes in reporting practices also affect this data, in particular the arson and rape counts. The way that rape was defined in this data changed in 2013 to remove the requirement of it being ‘forcible’ increasing the counts of this crime around this period as local law enforcement agencies changed their definiton.       Furthermore, in any one instance of crimes being committed e.g a break in and homicide, only the homicide will be reported as it is the more severe of the two crimes. This leads to additional underreporting of less 'severe' crimes frequently committed in tandem with more 'severe' crimes. The one exception to this rule being arson which is counted on top of any crime it is committed with. However, arson counts are only recorded if it can be proven that the fire was willfully set meaning it is difficult to actually prove and then report arson as an offense.\
       All of these insights are crucial for interpreting the results of this project, as they remind us that observed patterns in county-level crime rates may partly reflect variation in data quality or reporting practices rather than actual changes in criminal activity. By incorporating this perspective, this study can more carefully interpret both the limitations and strengths of using FBI crime statistics in the context of this paper's results.\
@@ -80,7 +84,7 @@ Feb x 2026
 
 ### Data Description
 
-      The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in a [Github repository](https://github.com/lborerseabloom/Econometrics.git) to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository. \
+      The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in a [Github repository](https://github.com/lborerseabloom/Econometrics.git) to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository.\
       The FBI crime and officer counts were scraped from their website at a monthly level across all police agencies in Minnesota. As discussed by James, Nathan, and Logan Rishard \[2\], this data contains quite a few intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecomunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] this data was mapped on to and summarized at the county level.
 
 ```{r homicides_time_series}
@@ -527,23 +531,29 @@ print(cumsum_test)
 target <- "crime_rate"
 
 # Pivot the data into long format for faceting
-facet_data <- acs_5_yearly_data |>
+acs_5_yearly_data |>
   pivot_longer(
     cols = all_of(setdiff(modeling_vars, target)),
     names_to = "variable",
     values_to = "value"
-  )
-
+  )|>
 # Make one big faceted plot
-ggplot(facet_data, aes(x = value, y = .data[[target]])) +
+ggplot(aes(x = value, y = .data[[target]], colour = as.factor(year))) +
   geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", color = "blue", se = TRUE) +
+  geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ variable, scales = "free_x") +
+  theme_bw()+
   labs(
     x = "Predictor Value",
-    y = "Crime Rate"
-  ) +
-  theme_bw()
+    y = "Crime Rate",
+    title = "Modeling Variables Relationships With Crime Pre and Post Covid") +
+  scale_color_manual(
+    values = c("2019" = "#619CFF",
+               "2024"  = "#F8766D"),
+    labels = c("Pre COVID", "Post COVID"))+
+  theme(legend.position = c(0.8, 0.2),
+        legend.background = element_rect(fill = alpha("white", 0.6), colour = "black"),
+        legend.title = element_blank())
 ```
 
 ```{r differenced_data}
