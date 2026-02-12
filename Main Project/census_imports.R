@@ -9,45 +9,45 @@ options(tigris_use_cache = TRUE)
 
 ### define variables to pull from census surveys ###
 vars <- c(
-  total_population          = "B01003_001",  # Total population
-  white_population          = "B02001_002",  # White population
+  total_population                 = "B01003_001",  # Total population
+  white_population                 = "B02001_002",  # White population
   
   # young male population
-  male_15_19 = "B01001_006",  
-  male_20_24 = "B01001_007",
+  male_15_19                       = "B01001_006",  
+  male_20_24                       = "B01001_007",
   
   # Income
-  median_household_income   = "B19013_001",  # Median household income (dollars)
-  households_total          = "B19001_001",  # Total households
-  households_income_lt5k    = "B19001_002",  # Households with income < $5,000
+  median_household_income          = "B19013_001",  # Median household income (dollars)
+  households_total                 = "B19001_001",  # Total households
+  households_income_lt5k           = "B19001_002",  # Households with income < $5,000
   
   # Education - only available from 2008 on
-  edu_total_25plus          = "B15003_001",  # Total population 25 years and over
-  edu_hs_grad               = "B15003_017",  # High school graduate
-  edu_some_college_lt1yr    = "B15003_018",
-  edu_some_college_gt1yr    = "B15003_019",
-  edu_assoc_degree          = "B15003_020",
-  edu_bachelors             = "B15003_021",
-  edu_masters               = "B15003_022",
-  edu_professional_degree   = "B15003_023",
-  edu_doctorate             = "B15003_024",
+  edu_total_25plus                 = "B15003_001",  # Total population 25 years and over
+  edu_hs_grad                      = "B15003_017",  # High school graduate
+  edu_some_college_lt1yr           = "B15003_018",
+  edu_some_college_gt1yr           = "B15003_019",
+  edu_assoc_degree                 = "B15003_020",
+  edu_bachelors                    = "B15003_021",
+  edu_masters                      = "B15003_022",
+  edu_professional_degree          = "B15003_023",
+  edu_doctorate                    = "B15003_024",
   
   # Children living arrangements
-  children_total            = "B09001_001",  # Total population under 18 years
-  children_w_mother_only    = "B09001_004",  # Living with mother only
-  children_w_father_only    = "B09001_005",  # Living with father only
-  children_no_parents       = "B09001_006",   # Not living with either parent
+  children_total                   = "B09001_001",  # Total population under 18 years
+  children_w_mother_only           = "B09001_004",  # Living with mother only
+  children_w_father_only           = "B09001_005",  # Living with father only
+  children_no_parents              = "B09001_006",   # Not living with either parent
   
-  # Migration
-  stayed_same_house                = "B07001_017E", # same house
-  from_same_county                 = "B07001_033E", # moved within same county
-  from_diff_county_same_state      = "B07001_049E", # moved from diff county same state
-  from_diff_state                  = "B07001_065E", # moved from diff state
-  from_abroad                      = "B07001_081E" # moved from abroad
+  # Migration data
+  stayed_same_house                = "B07001_017", # same house
+  from_same_county                 = "B07001_033", # moved within same county
+  from_diff_county_same_state      = "B07001_049", # moved from diff county same state
+  from_diff_state                  = "B07001_065", # moved from diff state
+  from_abroad                      = "B07001_081" # moved from abroad
 )
 
 vars_dec <- c(
-  total_population      = "P1_001N"      # Total population
+  total_population                 = "P1_001N"      # Total population
 )
 
 

@@ -171,7 +171,9 @@ acs_5_yearly_data <- crime_data |>
          
          persons_per_m2 = total_population_acs5/area_m2,
          
-         per_capita_alc_taxes = alc_taxes/total_population_acs5)|>
+         per_capita_alc_taxes = alc_taxes/total_population_acs5,
+         
+         per_capita_migration = (from_diff_county_same_state_acs5+from_diff_state_acs5+from_abroad_acs5)/total_population_acs5)|>
   
   # final cleaning
   drop_na(total_population_acs5)|>  # drop years that acs5 doesn't cover
