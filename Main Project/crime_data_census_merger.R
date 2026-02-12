@@ -169,7 +169,9 @@ acs_5_yearly_data <- crime_data |>
          
          persons_per_household = total_population_acs5/households_total_acs5,
          
-         persons_per_m2 = total_population_acs5/area_m2)|>
+         persons_per_m2 = total_population_acs5/area_m2,
+         
+         per_capita_alc_taxes = alc_taxes/total_population_acs5)|>
   
   # final cleaning
   drop_na(total_population_acs5)|>  # drop years that acs5 doesn't cover

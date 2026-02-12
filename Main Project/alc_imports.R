@@ -18,7 +18,7 @@ alc_tax <- map_dfr(files, function(file_path){
   
 })
 # drop useless columns
-alc_tax <- alc_tax[,1:4] 
+#alc_tax <- alc_tax[,1:4] 
 alc_tax <- rename(alc_tax, 
                   year=YEAR, 
                   county=`COUNTY LIQUOR SALES & TAX (ON & OFF-SALE)`, 

@@ -301,7 +301,7 @@ modeling_vars <- c(
   "crime_rate",
   "officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "pct_children_missing_parents", 
-  "pct_non_white", "alc_taxes", "pct_young_males", 
+  "pct_non_white", "per_capita_alc_taxes", "pct_young_males", 
   "persons_per_household", "persons_per_m2"
 )
 
@@ -375,16 +375,16 @@ acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
     log_persons_per_m2 = log(persons_per_m2),
     log_officers = log(officers),
     log_crime_rate = log(officers),
-    log_alc_taxes = log(alc_taxes)
+    log_per_capita_alc_taxes = log(per_capita_alc_taxes)
   )
 
 # removed "pct_children_missing_parents", "msp_main_counties", 
-# "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
+# "pct_young_males", "persons_per_household" due to insignificance at the >.5 level
 # "pct_lessthan_5kincome" removed due to -.7 correlation with median income and being a faulty measure over time
 
 modeling_vars <- c("log_officers", "median_household_income_acs5", 
   "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2",
-  "reservations", "top_cities", "log_alc_taxes"
+  "reservations", "top_cities", "log_per_capita_alc_taxes"
 )
 
 formula <- reformulate(modeling_vars, response = "crime_rate")
@@ -393,6 +393,11 @@ formula <- reformulate(modeling_vars, response = "crime_rate")
 pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
 post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
 
+# covid interactions with officers, alc, high school, reservations, cities all insignificant
+# "log_officers*post_covid", 
+# "pct_highschool_or_greater*post_covid",
+# "log_per_capita_alc_taxes*post_covid", "top_cities*post_covid",
+# "reservations*post_covid"
 full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
 total_model  <- lm(full_formula, data = acs_5_yearly_data)
 
@@ -559,7 +564,7 @@ ggplot(aes(x = value, y = .data[[target]], colour = as.factor(year))) +
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
 modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2", "log_alc_taxes"
+  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2", "log_per_capita_alc_taxes"
 )
 
 # difference across all of the data, add in a _diff to the end of the names too
@@ -600,7 +605,7 @@ kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
 # everything removed manually from main model included here to be selected or not by lasso model
 # "Binge.drinking.prevalence" still excluded due to data not being available and still not available across time
 
-modeling_vars <- c(  "year",  "officers", "log_alc_taxes", "alc_taxes",
+modeling_vars <- c(  "year",  "officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
   "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
   "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
   "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",

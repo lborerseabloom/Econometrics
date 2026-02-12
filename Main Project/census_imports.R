@@ -36,7 +36,14 @@ vars <- c(
   children_total            = "B09001_001",  # Total population under 18 years
   children_w_mother_only    = "B09001_004",  # Living with mother only
   children_w_father_only    = "B09001_005",  # Living with father only
-  children_no_parents       = "B09001_006"   # Not living with either parent
+  children_no_parents       = "B09001_006",   # Not living with either parent
+  
+  # Migration
+  stayed_same_house                = "B07001_017E", # same house
+  from_same_county                 = "B07001_033E", # moved within same county
+  from_diff_county_same_state      = "B07001_049E", # moved from diff county same state
+  from_diff_state                  = "B07001_065E", # moved from diff state
+  from_abroad                      = "B07001_081E" # moved from abroad
 )
 
 vars_dec <- c(
@@ -46,7 +53,7 @@ vars_dec <- c(
 
 ### 5 year acs estimates ###
 # Pull ACS data for all variables at county level for MN
-years = c(2019, 2024) # Want to compare pre covid 2014-18 vs 2019-23 
+years = c(2019, 2024) # Want to compare pre covid 2015-19 vs 2020-24 
 acs_5yr_ts <- map_df(years, function(y) {
   get_acs(
     geography = "county",
