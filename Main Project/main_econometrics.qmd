@@ -55,7 +55,7 @@ A Capstone Project for the Department of Math & Statistics
 
 William Hamilton Borer Seabloom
 
-Advised by Dr.Tyler George
+Advised by Dr. Tyler George
 
 Cornell College
 
@@ -615,7 +615,7 @@ kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
 
 ```{r lasso_regression}
 # everything removed manually from main model included here to be selected or not by lasso model
-# "Binge.drinking.prevalence" still excluded due to data not being available and still not available across time
+
 
 modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
   "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
