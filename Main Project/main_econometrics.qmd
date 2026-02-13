@@ -41,10 +41,11 @@ alc_data <- readRDS("../data/alc_data.rds")
 ```{=html}
 <!--
 # PAPER TODOs
-# Fill in new information gathered from:
-#    alc tax
-#    migration
-#    2024 census data
+#    Model results
+#       Linear
+#       Diff
+#       LASSO
+#    Conclusions
 #    Cannon Comments:
 #       hypotheses
 #       more comparisons with norman and arwood
@@ -85,7 +86,8 @@ Feb x 2026
 ![](images/Model.png)
 
       This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating data up to the 2024 ACS 5 census and examining how these relationships may have shifted due to the COVID-19 pandemic.\
-      While this study aims to replicate the factors studied in Norman and Arwood's original study there are some key differences in the analyses. Comparing the variables used in each study, both crime rates are a 5 year average of part 1 index crimes retreived from the FBI's crime reports. To measure household income levels at the median income, below \$5000, and the poverty line; both studies draw from the U.S census' 5 year ACS. The same is done for the measures of heterogeneity, net migration, households with less than two parents, the percent of the population made up of young males, and the percent of the population with a high school diploma or greater. The population density is stated to come from the census' estimates but due to lack of availability is determined in this study to be the population of the county divided by the area of the county in m^2^. The final explanatory variable used in their study, revenue from taxes on alcohol sales, comes from the Minnesotan department of revenue website and is also averaged across 5 year periods. While in the original study their data is also stated as having come from the Minnesotan department of revenue it is not made clear exactly what data they are using. Other factors such as the FBI and U.S Census' data collection practices have also changed but a general comparison to their original 1998 study is still possible with the understanding of the potential and real changes in the data's collection and reporting.\
+      While this study aims to replicate the factors studied in Norman and Arwood's original study there are some key differences in the analyses. Comparing the variables used in each study, both crime rates are a 5 year average of part 1 index crimes retrieved from the FBI's crime reports. To measure household income levels at the median income, below \$5000, and the poverty line; both studies draw from the U.S census' 5 year ACS. The same is done for the measures of heterogeneity, net migration, households with less than two parents, the percent of the population made up of young males, and the percent of the population with a high school diploma or greater. The population density is stated to come from the census' estimates but due to lack of availability is determined in this study to be the population of the county divided by the area of the county in m^2^. The final explanatory variable used in their study, revenue from taxes on alcohol sales, comes from the Minnesotan department of revenue website and is also averaged across 5 year periods. While in the original study their data is also stated as having come from the Minnesotan department of revenue it is not made clear exactly what data they are using. Other factors such as the FBI and U.S Census' data collection practices have also changed but a general comparison to their original 1998 study is still possible with the understanding of the potential and real changes in the data's collection and reporting.\
+      ### hypothesis
       In order to track some of these changes, James and Logan’s 2008 report provides an overview of how the FBI collects and reports crime statistics, detailing the methodologies, limitations, and potential sources of bias within the Uniform Crime Reporting (UCR) database. Their report is particularly important because it highlights challenges such as underreporting, changes in reporting practices, and differences in local enforcement priorities. James and Logan state that underreporting in the FBI crime data is a large problem, with systematic errors produced from the way that the data is collected. This bias stems from the fact that the only crimes the FBI report are ones that the police have reported to them, and police officers are only aware of citizen reported crimes leading to two large sources of underreporting. Changes in reporting practices also affect this data, in particular the arson and rape counts. The way that rape was defined in this data changed in 2013 to remove the requirement of it being ‘forcible’ increasing the counts of this crime around this period as local law enforcement agencies changed their definiton.       Furthermore, in any one instance of crimes being committed e.g a break in and homicide, only the homicide will be reported as it is the more severe of the two crimes. This leads to additional underreporting of less 'severe' crimes frequently committed in tandem with more 'severe' crimes. The one exception to this rule being arson which is counted on top of any crime it is committed with. However, arson counts are only recorded if it can be proven that the fire was willfully set meaning it is difficult to actually prove and then report arson as an offense.\
       All of these insights are crucial for interpreting the results of this project, as they remind us that observed patterns in county-level crime rates may partly reflect variation in data quality or reporting practices rather than actual changes in criminal activity. By incorporating this perspective, this study can more carefully interpret both the limitations and strengths of using FBI crime statistics in the context of this paper's results.\
       Boman and Gallupe’s research examines the effects of the COVID-19 pandemic on crime trends, with particular attention to how crime patterns shifted during periods of widespread social disruption. They found that while many types of crime declined during the pandemic, homicide and other serious violent crimes rose due to young people being put in positions where they were in close proximity to partners or family members and further from their friends. This change in social structures led to less time spent with friends in the situations where the smaller crimes such as vandalism are often committed. They also hypothesized that the higher counts of more severe crimes such as homicide and aggravated assault were the result of these potential minor offenders being moved into a situation where they have a much greater chance of committing a violent crime against their partners or family members. Their findings suggest that structural shocks, such as a global pandemic, can have heterogeneous effects on different categories of crime. This study directly informs my paper, as I will investigate whether similar shifts occurred in Minnesota counties, particularly in the prevalence of violent crime relative to overall crime rates as well as a potential shift in the predictability of crime after the pandemic.\
@@ -632,8 +634,8 @@ diff_tbl <- tidy(model_diff) |>
     std.error = round(std.error, 3),
     p.value   = round(p.value, 3)
   ) |>
-  mutate(Model = "Differenced Model") |>
-  select(Model, term, estimate, std.error, p.value)
+  select(term, estimate, std.error, p.value)|>
+  arrange(p.value)
 
 kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
   kable_styling("striped", full_width = FALSE) |>
@@ -760,10 +762,4 @@ Future work could expand this analysis in several ways. From a geo-spatial persp
 
 \[5\] U.S. Census Bureau. (2025, August 19). *Comparing ACS Data*.\
 <https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html>
-
-\[6\] Minnesota Department of Health. (n.d.). *Alcohol Costs by County* \[PDF\].\
-<https://www.health.state.mn.us/communities/alcohol/documents/alcoholcostscounty.pdf>
-
-\[7\] U.S Census no more county migration document\
-<https://www2.census.gov/programs-surveys/demo/tables/geographic-mobility/2021/state-to-county-migration-2017-2021/state-to-county-migration-flows/migration-flows-transition-note.pdf>
 :::
