@@ -758,8 +758,11 @@ Future work could expand this analysis in several ways. From a geo-spatial persp
 \[3\] Boman, J. H., & Gallupe, O. (2020). *Has COVID-19 Changed Crime? Crime Rates in the United States during the Pandemic*. *American Journal of Criminal Justice*, 45, 537–545.\
 <https://doi.org/10.1007/s12103-020-09551-3>
 
-\[4\] National Law Enforcement Telecommunications System (NLETS). (1981). *ORI (Originating Agency Identifier) Directory*. U.S. Department of Justice. Grant No. 75-SS-99-6018.
+\[4\] National Law Enforcement Telecommunications System (NLETS). (1981). *ORI (Originating Agency Identifier) Directory*. U.S. Department of Justice. Grant No. 75-SS-99-6018.\
 
 \[5\] U.S. Census Bureau. (2025, August 19). *Comparing ACS Data*.\
 <https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html>
+
+\[6\] Minnesota Department of Revenue Sales and Use Tax Statistics for Liquor Sales and 2.5% Tax by County\
+<https://www.revenue.state.mn.us/sales-and-use-tax-statistics-and-annual-reports>
 :::
