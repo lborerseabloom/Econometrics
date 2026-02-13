@@ -48,13 +48,23 @@ alc_tax <- rename(alc_tax,
   # )
   # carry forward 2022-2023 change for slope as linear interpolation isn't accurate
   mutate(
+    # calculate slope
+    slope = alc_taxes - lag(alc_taxes),
+    
+    # avg slope over normally trended years
+    avg_slope = mean(
+      slope[(year %in% 2011:2019) | (year == 2023)],
+      na.rm = TRUE),
+    
+    # replace 2024 with that average + 2023
     alc_taxes = if_else(
       year == 2024 & is.na(alc_taxes),
-      alc_taxes[year == 2023] +
-        (alc_taxes[year == 2023] - alc_taxes[year == 2022]),
+      alc_taxes[year == 2023] + avg_slope,
       alc_taxes
     )
-  )
+  ) |>
+  ungroup() |>
+  select(-slope, -avg_slope)
 
 #alc alc_taxes and sales are almost perfectly correlated
 alc_tax|>
