@@ -91,12 +91,14 @@ Feb x 2026
 
 ### Hypotheses
 
-      need to add this section
+      Consistent with the findings of Norman and Arwood [1], we would expect that prior to the COVID-19 pandemic, county-level crime rates will be positively associated with indicators of social disorganization, particularly higher net migration rates, greater proportions of households missing one or both parents, and higher levels of alcohol consumption proxied by county alcohol tax revenue. In contrast, more traditional socioeconomic indicators such as median household income, educational attainment, and population density are expected to exhibit weak or statistically insignificant relationships with crime in the pre-pandemic period, as is found in earlier work.\
+      From this the central hypothesis of this study is that COVID represents a structural shift in the relationship between crime and its sociological determinants. Specifically, that the magnitude and significance of these relationships differ between the pre-pandemic and post-pandemic periods across Minnesota counties. From Jake Boman and Owen Gallupe, this study further hypothesizes that post-pandemic crime patterns, particularly violent crime, are more strongly associated with indicators of family structure and demographic composition, such as the proportion of young males and family disruption, reflecting shifts in routine activities and social proximity during periods of social restriction\
+      Acknowledging the limitations of crime data highlighted by Nathan James and Wayne Logan, this study hypothesizes that observed changes in crime rates will vary across offense types and counties in ways that reflect not only true changes in criminal behavior but also differences in reporting practices and data quality. As a result, changes in the modeled relationships between crime and its determinants should be interpreted as the combination of social disruption and institutional variation rather than as being due to criminal activity alone.\
 
 ### Data Description
 
       The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in this [Github repository](https://github.com/lborerseabloom/Econometrics.git) to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository.\
-      The FBI's counts of crimes and officers were then scraped from their website at a monthly level across all police agencies in Minnesota. As discussed by James, Nathan, and Logan Rishard \[2\], this data contains quite a few intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecommunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] this data was mapped on to and summarized at the county level.
+      To star, the FBI's counts of crimes and officers were scraped from their website at a monthly level across all police agencies in Minnesota. As discussed by James, Nathan, and Logan Rishard \[2\], this data contains quite a few intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecommunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] this data was mapped on to and summarized at the county level.
 
 ```{r homicides_time_series}
 # Monthly totals
@@ -142,8 +144,8 @@ theme(
 )
 ```
 
-      A brief look at the monthly/yearly plot of homicides over time shows the issues data which are present across all of the FBI's monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records as stated in James and Logan (2008) \[2\]. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.\
-      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data i lacking some documentation a general overview of collection and reporting is available at the Minnesota Department of Revenue's website [6]. The two main inaccuracies brought up by them being that as the gross sales data is not used in calculating taxes it is more prone to taxpayer errors, potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are scrutinized for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a small number of businesses and our sample size is large enough that this likely isn't a problem.
+      A brief look at the monthly/yearly plot of homicides over time shows the issues in the data which are present across all of the FBI's monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records as stated in James and Logan (2008) \[2\]. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.\
+      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue's website [6]. The two main inaccuracies brought here being that as the gross sales data is not used in calculating taxes it is more prone to taxpayer errors, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are scrutinized for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a small number of businesses and our sample size is large enough that this likely isn't a problem.\
       Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue's data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers.
 
 ```{r alc_trends}
@@ -159,6 +161,7 @@ alc_data|>
   labs(x=NULL, y="Revenue From Taxes on Alcohol Sales",
        title = "Minnesota Total Revenue From Taxes on Alcohol Sales")
 ```
+
       With this data now organized and graphed, the clear positive trend in the revenue from alcohol sales taxes can now be seen. The most notable feature of this plot being the massive dip in 2020 and recovery to the trend in 2021.\
       County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias \[5\]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases nonetheless, will have to be addressed in the final interpretation of the results as a potential source of bias.\
       The dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes collected from the FBI and dividing it by the total population estimate from the census. The available demographic variables (officers per capita, median household income, households with less than 5k income, people with a high school or greater degree, children missing parents, percent non white, young males, persons per household, persons per m^2^, and net migration) used in Norman and Arwood’s 1998 study \[1\] were then calculated using a variety of census estimates.\
@@ -224,7 +227,7 @@ acs_5_yearly_data|>
   geom_density(alpha=.8,data = acs_5_yearly_data|>
                    filter(year == 2024))+
   geom_density(alpha=.8)+
-  geom_histogram(alpha=.8,data = acs_5_yearly_data|>
+  geom_histogram(bins=50,alpha=.8,data = acs_5_yearly_data|>
                    filter(top_cities == 1), color = "black")+
  annotate(
     "text", x = Inf, y = 0,
@@ -375,7 +378,7 @@ kable(summary_stats, format = "html",
   kable_styling("striped")
 ```
 
-      An examination of the predictive variables used in \[1\] indicates no statistically significant changes at the 5% level between the pre and post-COVID periods for the percent of children missing parents, officers per 1,000 residents, persons per household, and persons per square meter. However, across the rest of the variables we see relatively larger and more significant changes particularly in the crime rates, income, education, heterogeneity, and revenue from alcohol taxes.
+      An examination of the predictive variables used in \[1\] indicate no statistically significant changes at the 5% level between the pre and post-COVID periods for the per capita migration, percent young males, percent of children missing parents, officers per 1,000 residents, persons per household, and persons per square meter. However, across the rest of the variables we see relatively larger and more significant changes particularly across crime rates, income, education, heterogeneity, and revenue from alcohol taxes.
 
 ```{r acs_5_pre_modeling_comparisons2}
 ### correlation matrix
@@ -455,8 +458,8 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 )
 ```
 
-      After fitting some preliminary models pct_children_missing_parents, pct_young_male, and persons_per_household were removed due to insignificance at a >.5 level. pct_lessthan_5kincome was also removed due to a -.7 correlation with median income and being a faulty measure over time due to the change in value of $5000 over time. Variables with log_ in front of their names also had a natural log function applied to the in order to stabilize their variances. Three new features were also added to the model, reservations as an indicator for if a county has a reservation in it, top_cities as an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which are counties containing the 5 largest cities in Minnesota, and a pre and post COVID indicator for if the data is from the 2019(pre) or 2024(post) ACS 5 estimates.This analysis leaves us with these 9 variables to measure per capita crime with.
-      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to this their interactions with the pre and post COVID indicator will also be included in the model.
+      After fitting preliminary models pct_children_missing_parents, pct_young_male, and persons_per_household were removed due to insignificance at a >.5 level. pct_lessthan_5kincome was also removed due to a -.7 correlation with median income and being a faulty measure over time due to the change in value of $5000 over time. Variables with log_ in front of their names also had a natural log function applied to the in order to stabilize their variances. Three new features were also added to the model, reservations as an indicator for if a county has a reservation in it, top_cities as an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which are contain the 5 largest cities in Minnesota, and a pre and post COVID indicator for if the data is from the 2019(pre) or 2024(post) ACS 5 estimates. This analysis leaves us with these 9 variables to measure per capita crime with.\
+      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to this their interactions with the pre and post COVID indicator will also be included in the model.\
 
 ```{r acs5_modeling}
 formula <- reformulate(modeling_vars, response = "crime_rate")
@@ -467,9 +470,8 @@ formula <- reformulate(modeling_vars, response = "crime_rate")
 
 # covid interactions with officers, alc, high school, reservations, cities, migration all insignificant
 full_formula <- reformulate(c(modeling_vars, "post_covid","post_covid*log_officers",
-                             "post_covid*pct_highschool_or_greater", "post_covid*per_capita_migration",
-                              "post_covid*log_per_capita_alc_taxes", "post_covid*top_cities",
-                              "post_covid*reservations", "post_covid*log_per_capita_alc_taxes"), 
+                             "post_covid*pct_highschool_or_greater", "post_covid*per_capita_migration", "post_covid*log_per_capita_alc_taxes", 
+                             "post_covid*top_cities",  "post_covid*reservations"), 
                             response = "sqrt(crime_rate)")
 
 total_model  <- lm(full_formula, data = acs_5_yearly_data)
@@ -546,18 +548,18 @@ kbl(model_metrics#, caption = "Model Performance Summary (R², Adjusted R², RMS
     ) |>kable_styling("striped", full_width = FALSE)
 ```
 
-      This model seems to do a decent job at predicting crime at the county level across R^2^ explaining about 69% of the variance in crime rates and having an RMSE of about half of the standard deviation in crime rates. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in the residuals vs fits plot.
+      This model explains 64% of the variance in crime rates and having an RMSE of about half of the standard deviation in crime rates. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in the residuals vs fits plot.
 
 ```{r acs5_modeling_resids_v_fits}
 plot(total_model, 1)
 ```
-      This model also mostly satisfies it's normality in the residuals assumption with the majority of residuals matching up with the normal distribution. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is small enough to not impact our conclusions to heavily.
+      This model also mostly satisfies it's normality in the residuals assumption with the majority of residuals matching up with the normal distribution. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is small enough to not impact the conclusions from this model heavily.
 
 ```{r acs5_modeling_resid_normality}
 plot(total_model, 2)
 ```
 
-      The full model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. Consistent with Norman and Arwood's previous work, only a small subset of variables remain statistically significant at conventional levels, as well as most interaction terms with the post-COVID indicator not being statistically distinguishable from zero.\
+      The linear model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. As in Norman and Arwood's previous work, only a small subset of variables remain statistically significant at conventional levels, as well as most interaction terms with the post-COVID indicator not being statistically distinguishable from zero.\
       The first notable finding concerns median household income, which continues to exhibit a statistically significant negative relationship with crime rates. Although the estimated coefficient is very small in magnitude due to the large values(50k-120k), the relationship is precisely estimated and highly significant, suggesting that counties with higher median incomes experience lower crime rates, holding other factors constant. This finding is consistent with Norman and Arwood’s results, where the related measure of economic deprivation (“percent below poverty”) was positively associated with crime, albeit only marginally significant. Taken together, both studies support the conclusion that economic conditions remain an important determinant of crime, even if the magnitude of the effect isn't particularly large.\
       Population density emerges as one of the most stable and substantively meaningful predictors in the model. The log of persons per square meter is positive and highly significant, indicating that denser counties experience higher crime rates. This relationship holds consistently across specifications and does not meaningfully change after the start of COVID-19. This finding strengthens the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.\
       The indicator for reservations is also statistically significant and positive, indicating higher crime rates in counties containing reservations. This effect persists even after controlling for income, density, and demographic characteristics, and shows no meaningful change in the post-COVID period. This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason fro this crime can be seen in the FBI's handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the 'serious' offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.\
@@ -582,8 +584,100 @@ cumsum_test <- strucchange::sctest(cumsum_process)
 print(cumsum_test)
 # plot(cumsum_process)
 ```
+      Running a LASSO regression provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike the previous regressions, which rely on statistical significance conditional on a specified model, the LASSO penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance.\
 
-      Fitting a model using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates. Using this approach, the variables found to have a statistically significant relationship on the change in crime rates are the population density measured in m^2^, the per capita migration, and median household income, with the logarithm of the percentage of the population identified as white being just not significant at a >.05 level. This echos the conclusions of the previous model as the same general structure and change in meaningful factors remain impact on the changes in crime. Any significance of the percent non-white variable seems to be spurious as it was insignificant in the previous model and remains the same if less so in this model.
+```{r lasso_regression}
+set.seed(123)
+# everything removed manually from main model included here to be selected or not by lasso model
+
+
+modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
+  "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
+  "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
+  "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",
+  "edu_total_25plus_acs5", "edu_hs_grad_acs5",  "edu_some_college_lt1yr_acs5",  "edu_some_college_gt1yr_acs5",
+  "edu_assoc_degree_acs5",  "edu_bachelors_acs5",  "edu_masters_acs5",  "edu_professional_degree_acs5",
+  "edu_doctorate_acs5",  "households_total_acs5",  "households_income_lt5k_acs5",  
+  "median_household_income_acs5", "pct_lessthan_5kincome",  "pct_highschool_or_greater",
+  "pct_children_missing_parents",  "post_covid",  "top_cities",  "reservations",
+  "pct_non_white",  "pct_young_males",  "persons_per_household",  "persons_per_m2",
+  "log_pct_non_white",  "log_persons_per_m2",  "log_officers",  
+  "stayed_same_house_acs5", "from_same_county_acs5", 
+  "from_diff_county_same_state_acs5", "from_diff_state_acs5",
+  "from_abroad_acs5", "per_capita_migration")
+
+lasso_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
+
+# Create model matrix: lasso works with matrices not normal df
+# use previous formula used in full model with covid indicator included 
+x <- model.matrix(lasso_formula, data = acs_5_yearly_data)[, -1]
+
+# Response vector
+y <- acs_5_yearly_data$crime_rate
+
+# LASSO with cross-validation
+lasso_model <- cv.glmnet(
+  x = x,
+  y = y,
+  alpha = 1,      # lasso alpha
+  nfolds = 10,
+  standardize = TRUE # to fit lasso must standardize values but to interpert/compare to OLS need to return the values to original scale
+)
+
+# find optimal lambda value that minimizes test MSE
+best_lambda <- lasso_model$lambda.min
+
+
+# produce plot of test MSE by lambda value
+# plot(lasso_model) 
+
+# find coefficients of best model
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+as.matrix(coef(best_model))|>
+  as_tibble(rownames = " ")|>
+  mutate(s0 = ifelse(s0 == 0, -999, s0))|>
+  arrange(-s0)|>
+  mutate(s0 = ifelse(s0 == -999, ".", s0))|>
+  kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
+```
+
+      The variables selected by the LASSO remain closely aligned with the factors identified as meaningful in earlier models. Population density, per capita migration, alcohol tax revenue, racial composition, reservation status, and urban indicators all retain non-zero coefficients, suggesting that these variables contain the most information for explaining variation in county-level crime. Median household income is retained with a small negative coefficient, consistent with prior models, although its magnitude is substantially reduced due to penalization. The post-COVID indicator is also retained but with a very small coefficient, reinforcing earlier findings that the pandemic period itself does not fundamentally alter the relationship between crime and its predictors.\
+      In contrast, many demographic, educational, and household structure variables are shrunk entirely to zero. This indicates that, once the more predominant economic and spatial variables are accounted for the LASSO model finds little gain in predictive power by including these variables. Rather than suggesting that these are not at all related to crime this demonstrates that the variables used in previous models are the main factors important in determining county-level crime.\
+
+```{r lasso_regression_metrics}
+# get predictions for metrics
+y_hat <- predict(lasso_model, s = "lambda.min", newx = x)
+
+# r2
+ss_res <- sum((y - y_hat)^2)
+ss_tot <- sum((y - mean(y))^2)
+
+r2 <- 1 - ss_res / ss_tot
+
+
+# adj r2
+beta <- coef(lasso_model, s = "lambda.min")
+p <- sum(beta[-1] != 0)   # exclude intercept
+n <- length(y)
+adj_r2 <- 1 - (1 - r2) * (n - 1) / (n - p - 1)
+
+
+# rmse
+rmse <- sqrt(mean((y - y_hat)^2))
+
+# Put metrics into a tibble
+metrics_tbl <- tibble(
+  Metric = c("Best Lambda", "R-squared", "Adjusted R-squared", "RMSE"),
+  Value  = c(best_lambda, r2, adj_r2, rmse)
+)
+
+# Display nicely with kable
+metrics_tbl %>%
+  kbl(caption = "LASSO Model Performance Metrics") |>kable_styling("striped", full_width = FALSE)
+```
+
+      Additionally we see only a small improvement across these model performance metrics when using the LASSO model. Furthermore, the very small value selected for the best lambda shows that the OLS approach we were using previously was a good choice for modeling the data. Taken together the results from the LASSO model shows that the previous variables chosen and models used were valid estimators for Minnesota county level crime and its relationship with its traditional sociological predictors. \
+      Fitting a model using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates. Using this approach, the variables found to have a statistically significant relationship on the change in crime rates is the population density measured in m^2^. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.\
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
@@ -624,6 +718,8 @@ kbl(diff_tbl, caption = "Regression Model for Differences in the Square Root of 
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
 
+      Examining the metrics of this differenced model as well as a LASSO regression model we see a similar story. The extremely low R^2^ shows again that none of the considered factors are explaining much of the actual variance in changes of crime rates before and after COVID.\
+
 ```{r diff_model_metrics}
 # Compute model metrics
 diff_model_metrics <- tibble(
@@ -643,6 +739,8 @@ diff_model_metrics <- tibble(
 kbl(diff_model_metrics
     ) |>kable_styling("striped", full_width = FALSE)
 ```
+
+      The LASSO model also only selects the population density measure, again with a negative coefficient showing it as the only meaningful predictor among these sociological factors for explaining the changes in crime rates over COVID.
 
 ```{r diff_lasso}
 # everything removed manually from main model included here to be selected or not by lasso model except indicator variables that do not change 
@@ -704,114 +802,27 @@ as.matrix(coef(best_model))|>
 
 ```
 
-
-      Overall, the findings from this study suggest that while crime rates fluctuated during the COVID-19 pandemic, the determinants of crime in Minnesota have remained largely stable. The difference model indicates that pandemic-related shifts in population composition and density account for some of the variation in crime changes, but the core relationships between crime and its economic, demographic, and geographic predictors remain consistent both over time and relative to the findings of Norman and Arwood’s 1998 study [1].
-
-```{r lasso_regression}
-# everything removed manually from main model included here to be selected or not by lasso model
-
-
-modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
-  "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
-  "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
-  "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",
-  "edu_total_25plus_acs5", "edu_hs_grad_acs5",  "edu_some_college_lt1yr_acs5",  "edu_some_college_gt1yr_acs5",
-  "edu_assoc_degree_acs5",  "edu_bachelors_acs5",  "edu_masters_acs5",  "edu_professional_degree_acs5",
-  "edu_doctorate_acs5",  "households_total_acs5",  "households_income_lt5k_acs5",  
-  "median_household_income_acs5", "pct_lessthan_5kincome",  "pct_highschool_or_greater",
-  "pct_children_missing_parents",  "post_covid",  "top_cities",  "reservations",
-  "pct_non_white",  "pct_young_males",  "persons_per_household",  "persons_per_m2",
-  "log_pct_non_white",  "log_persons_per_m2",  "log_officers",  
-  "stayed_same_house_acs5", "from_same_county_acs5", 
-  "from_diff_county_same_state_acs5", "from_diff_state_acs5",
-  "from_abroad_acs5", "per_capita_migration")
-
-lasso_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
-
-# Create model matrix: lasso works with matrices not normal df
-# use previous formula used in full model with covid indicator included 
-x <- model.matrix(lasso_formula, data = acs_5_yearly_data)[, -1]
-
-# Response vector
-y <- acs_5_yearly_data$crime_rate
-
-# LASSO with cross-validation
-lasso_model <- cv.glmnet(
-  x = x,
-  y = y,
-  alpha = 1,      # lasso alpha
-  nfolds = 10,
-  standardize = TRUE # to fit lasso must standardize values but to interpert/compare to OLS need to return the values to original scale
-)
-
-# find optimal lambda value that minimizes test MSE
-best_lambda <- lasso_model$lambda.min
-
-
-# produce plot of test MSE by lambda value
-# plot(lasso_model) 
-
-# find coefficients of best model
-best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
-as.matrix(coef(best_model))|>
-  as_tibble(rownames = " ")|>
-  mutate(s0 = ifelse(s0 == 0, -999, s0))|>
-  arrange(-s0)|>
-  mutate(s0 = ifelse(s0 == -999, ".", s0))|>
-  kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
-```
-
-      Running a LASSO regression provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike the previous regressions, which rely on statistical significance conditional on a specified model, the LASSO penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance.\
-      The variables selected by the LASSO remain closely aligned with the factors identified as meaningful in earlier models. Population density, per capita migration, alcohol tax revenue, racial composition, reservation status, and urban indicators all retain non-zero coefficients, suggesting that these variables contain the most information for explaining variation in county-level crime. Median household income is retained with a small negative coefficient, consistent with prior models, although its magnitude is substantially reduced due to penalization. The post-COVID indicator is also retained but with a very small coefficient, reinforcing earlier findings that the pandemic period itself does not fundamentally alter the relationship between crime and its predictors.\
-      In contrast, many demographic, educational, and household structure variables are shrunk entirely to zero. This indicates that, once the more predominant economic and spatial variables are accounted for the LASSO model finds little gain in predictive power by including these variables. Rather than suggesting that these are not at all related to crime this demonstrates that the variables used in previous models are the main factors important in determining county-level crime.
-
-```{r lasso_regression_metrics}
-# get predictions for metrics
-y_hat <- predict(lasso_model, s = "lambda.min", newx = x)
-
-# r2
-ss_res <- sum((y - y_hat)^2)
-ss_tot <- sum((y - mean(y))^2)
-
-r2 <- 1 - ss_res / ss_tot
-
-
-# adj r2
-beta <- coef(lasso_model, s = "lambda.min")
-p <- sum(beta[-1] != 0)   # exclude intercept
-n <- length(y)
-adj_r2 <- 1 - (1 - r2) * (n - 1) / (n - p - 1)
-
-
-# rmse
-rmse <- sqrt(mean((y - y_hat)^2))
-
-# Put metrics into a tibble
-metrics_tbl <- tibble(
-  Metric = c("Best Lambda", "R-squared", "Adjusted R-squared", "RMSE"),
-  Value  = c(best_lambda, r2, adj_r2, rmse)
-)
-
-# Display nicely with kable
-metrics_tbl %>%
-  kbl(caption = "LASSO Model Performance Metrics") |>kable_styling("striped", full_width = FALSE)
-```
-
-      Additionally we see only a small improvement across these model performance metrics when using the LASSO model. Furthermore, the very small value selected for the best lambda shows that the OLS approach we were using previously was a good choice for modeling the data. Taken together the results from the LASSO model shows that the previous variables chosen and models used were valid estimators for Minnesota county level crime and its relationship with its traditional sociological predictors. 
+      Overall, the findings from modeling the differences in crime rates suggest that while crime rates fluctuated during the COVID-19 pandemic, the traditional sociological determinants of crime fail to explain these changes.
 
 ### Conclusions
 
-      Not yet updated for new data
+      This study has revisited and extended the county-level framework of Norman and Arwood to ask whether COVID changed the relationships between county sociological characteristics and part I crime in Minnesota. This study has been done using five-year ACS averages (2015–2019 vs. 2020–2024) and aggregated crime counts from the FBI. From this data some key takeaways have become clear.\
+      Firstly, median household income is robustly and negatively associated with county crime rates: wealthier counties have lower crime, holding other controls constant. Population density is also a stable, positive predictor of higher crime. These results stem from OLS regression with robust standard errors, as well as LASSO penalization and together account for a large proportion of cross-county variations in crime rates.\
+      Secondly, the post-COVID indicator and it's interaction terms are statistically indistinguishable from zero, and structural-break tests fail to detect a wholesale change in parameter relationships across the two periods. Although there was a short-term rise in serious violent offenses around 2019–2021, the pandemic did not produce a clear structural change in how the main sociological predictors relate to county crime.\
+      Education, racial composition, officers per capita, migration, and alcohol-tax revenue show at best weak or conditional relationships once income, density, urban indicators, and reservation status are included. The LASSO model highlights the same small set of predictors (density, migration, alcohol revenue, racial composition, reservation and urban indicators, and income) as carrying most predictive information. When modeling changes (post minus pre) in county crime, almost none of the differenced sociological variables explain the variation—population-density change is the lone consistent predictor, with a negative coefficient (counties that experienced increases in density over the interval tended to see relative declines in crime). This suggests that the pandemic's fluctuations in crime were not straightforwardly driven by concurrent changes in the ACS variables we could observe.\
+      These findings imply that there is resilience in the structural predictors of county crime, economic standing and urban density remain centrally related to crime. However, this data contains many caveats that must be noted when interpreting these results.\
 
-      Across all models, median household income continues to be one of the strongest predictors of crime. Counties with higher income levels consistently show lower crime rates, supporting the long-standing idea that economic well-being reduces criminal activity. This relationship is even stronger today than it was in Norman and Arwood’s 1998 study, \[1\] suggesting that economic inequality has become a more powerful influence on community safety.\
-      Population density also remains a key factor. More densely populated counties tend to have higher crime rates, both before and after the COVID-19 pandemic. This likely reflects the social and environmental pressures that come with larger populations such as higher opportunity for crime and more social tension. The consistency of this result suggests that urbanization continues to play a central role in shaping where and how crime occurs.\
-Nevertheless, some relationships have shifted in interesting ways. Education, for example, is only positively related to crime pre-COVID, which at first seems counterintuitive. This is probably because counties with higher levels of education also tend to be more urban, and urban areas naturally have higher reported crime rates due to density and better reporting systems. In this case, education may be capturing the effects of urban living rather than reflecting a direct link between schooling and crime which could also be the reason for the drop in significance post-COVID.\
-      The racial composition of counties also changed in its relationship with crime before and after COVID. Pre-COVID, counties with higher percentages of non-white residents tended to have higher crime rates. After COVID, this relationship weakens and is no longer statistically significant. This could mean that the link between race and recorded crime lessened during the COVID-19 pandemic, possibly due to changes in mobility, enforcement, or reporting practices. It might also reflect the different ways communities were affected by the pandemic, especially in urban centers and areas with reservations.\
-      Law enforcement presence sees some slight pre and post pandemic changes as well. Before COVID and after, the number of officers per capita was not significantly related to crime. After the pandemic, however, the relationship became slightly positive but still not significant. If this increase in effect is real, this would suggest that counties with more officers also saw higher recorded crime rates. Theoretically, one would expect this to have a higher effect due to better reporting, data collection, and more crime where police resources are concentrated.\
-      There are also some limitations that affect how these results should be interpreted. The FBI’s crime data and the U.S. Census Bureau’s ACS estimates both have known problems. FBI data are affected by under reporting, differences in how agencies define and record crimes, and changes in reporting systems that happened around the same time as COVID. The ACS data provide five-year averages rather than yearly snapshots, which smooths out short-term changes and makes it harder to isolate the immediate impact of the COVID-19 pandemic. The models also show signs of uneven variance, even after using robust standard errors, suggesting that certain counties have unique local factors not captured by the available data.\
-Future work could expand this analysis in several ways. From a geo-spatial perspective, models could help capture how crime in one county influences its neighbors, especially around the Twin Cities and other urban areas. Using smaller geographic units like census tracts could reveal more detailed local patterns. Over time, more granular yearly data could allow for time-series or panel analyses to see how relationships change year to year, rather than only comparing pre and post-COVID averages.\
-      It would also be valuable to bring in new types of data. Measures of housing instability, unemployment fluctuations, or community engagement could help explain why some counties deviate from expected trends. Particularly, obtaining an estimate of net migration which was found highly significant in Norman, J. Mark and Arwood, Donald E’s study but not currently available from the U.S Census. Including these newer variables could help capture shifts in social behavior that the variables used in this study miss.\
-      In summary, this study finds that while the COVID-19 pandemic caused a short-term disruption in crime, the broader structural relationships between crime and its main determinants: income, population density, and demographic composition have held steady. Economic inequality remains one of the most important predictors of crime, while urbanization continues to shape where it happens. Education and race have become more complex indicators that now seem to reflect the changing geography and social makeup of Minnesota’s counties rather than direct causes of crime. Although these results suggest that some social forces driving crime are deeply rooted and resilient, some forces such as heterogeneity of a community can be shifted in the face of major global events like the COVID-19 pandemic.
+### Limitations and Future Work
+
+      These crime counts come from the Federal Bureau of Investigation (FBI) and inherit known reporting limitations (underreporting, changes in definitions and agency reporting practices, variation across local agencies). For one, jurisdictional and tribal-land reporting differences can affect counts for reservation counties (the FBI’s handling of serious offenses on tribal lands differs from municipal reporting), which complicates direct comparison across counties.\
+      Furthermore, many of the sociological predictors are five-year ACS averages reported by the U.S. Census Bureau (due to it being the most granular level at which every Minnesota county is reported); these smooth short-term dynamics and carry sampling/response errors as well as being estimates rather than true values.\
+      For future work I recommend a variety of continuations namely: spatial econometric approaches that explicitly model correlations between neighboring counties and use yearly (not five-year averaged) data where available; analyses at finer geographic units as crime is not ever happening on county levels; incorporation of new indicators (housing instability, unemployment, and mobility among others) as well as administrative data about police reporting practices; and (d) careful treatment of tribal jurisdiction issues to better understand the reservation result.\
+
+### Final Summary
+
+      The pandemic produced a noticeable, short-lived rise in some serious offenses, but it did not fundamentally reshape the cross-county relationships between serious crime and a county’s socioeconomic and spatial characteristics. Income inequality and urban density remain the dominant, stable predictors of county level crime in Minnesota; and many other commonly discussed sociological measures explain little additional cross-county variation once these structural factors are accounted for.\
+
+
 
 ::: {style="text-align: center;"}
 **Citations**
