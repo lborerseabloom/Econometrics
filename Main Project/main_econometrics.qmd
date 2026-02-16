@@ -41,10 +41,6 @@ alc_data <- readRDS("../data/alc_data.rds")
 ```{=html}
 <!--
 # PAPER TODOs
-#    Model results
-#       Linear
-#       Diff
-#       LASSO
 #    Conclusions
 #    Cannon Comments:
 #       hypotheses
@@ -698,7 +694,8 @@ as.matrix(coef(best_model))|>
 ```
 
       Running a LASSO regression provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike the previous regressions, which rely on statistical significance conditional on a specified model, the LASSO penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance.\
-      The variables selected by the LASSO align closely with the factors identified as meaningful in earlier specifications. Population density, per capita migration, alcohol tax revenue, racial composition, reservation status, and urban indicators all retain non-zero coefficients, suggesting that these variables contain the most predictive information for explaining variation in county-level crime. Median household income is retained with a small negative coefficient, consistent with prior models, although its magnitude is substantially reduced due to penalization. The post-COVID indicator is also retained but with a very small coefficient, reinforcing earlier findings that the pandemic period itself does not fundamentally alter the relationship between crime and its predictors.\
+      The variables selected by the LASSO remain closely aligned with the factors identified as meaningful in earlier models. Population density, per capita migration, alcohol tax revenue, racial composition, reservation status, and urban indicators all retain non-zero coefficients, suggesting that these variables contain the most information for explaining variation in county-level crime. Median household income is retained with a small negative coefficient, consistent with prior models, although its magnitude is substantially reduced due to penalization. The post-COVID indicator is also retained but with a very small coefficient, reinforcing earlier findings that the pandemic period itself does not fundamentally alter the relationship between crime and its predictors.\
+      In contrast, many demographic, educational, and household structure variables are shrunk entirely to zero. This indicates that, once the more predominant economic and spatial variables are accounted for the LASSO model finds little gain in predictive power by including these variables. Rather than suggesting that these are not at all related to crime this demonstrates that the variables used in previous models are the main factors important in determining county-level crime.
 
 ```{r lasso_regression_metrics}
 # get predictions for metrics
@@ -732,7 +729,7 @@ metrics_tbl %>%
   kbl(caption = "LASSO Model Performance Metrics") |>kable_styling("striped", full_width = FALSE)
 ```
 
-      Additionally we see only a small improvement across these metrics when using LASSO for the model. Furthermore, the very small value selected for the best lambda shows that the OLS approach we were using previously is going to be a good choice for modeling the data.
+      Additionally we see only a small improvement across these model performance metrics when using the LASSO model. Furthermore, the very small value selected for the best lambda shows that the OLS approach we were using previously was a good choice for modeling the data. Taken together the results from the LASSO model shows that the previous variables chosen and models used were valid estimators for Minnesota county level crime and its relationship with its traditional sociological predictors. 
 
 ### Conclusions
 
