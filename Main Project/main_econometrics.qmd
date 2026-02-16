@@ -544,37 +544,6 @@ model_metrics <- tibble(
 # Create the kable table
 kbl(model_metrics#, caption = "Model Performance Summary (R², Adjusted R², RMSE)"
     ) |>kable_styling("striped", full_width = FALSE)
-
-# further residual/ significance analysis
-# # residuals vs fits
-# plot(pre_covid_model, 1)
-# plot(post_covid_model, 1)
-# plot(total_model, 1)
-# 
-# 
-# # Chow test using the 'post_covid' variable as the breakpoint
-# chow_test <- strucchange::sctest(total_model, type = "Chow", point = which(acs_5_yearly_data$post_covid == 1)[1])
-# 
-# print(chow_test)
-# 
-# # CUMSUM test
-# cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5_yearly_data)
-# 
-# # statistical test on the CUMSUM process
-# cumsum_test <- strucchange::sctest(cumsum_process)
-# 
-# print(cumsum_test)
-# plot(cumsum_process)
-# 
-# # rmse before/after
-# RMSE(pre_covid_model$residuals)
-# RMSE(post_covid_model$residuals)
-# 
-# # test for equal variances
-# # .5 bc test suggests sqrt transform 
-# bc <- MASS::boxcox(lm(full_formula, data = acs_5_yearly_data))
-# var.test(sqrt(acs_5_yearly_data$crime_rate) ~ acs_5_yearly_data$post_covid)
-# car::leveneTest(sqrt(acs_5_yearly_data$crime_rate) ~ as.factor(acs_5_yearly_data$post_covid))
 ```
 
       This model seems to do a decent job at predicting crime at the county level across R^2^ explaining about 69% of the variance in crime rates and having an RMSE of about half of the standard deviation in crime rates. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in the residuals vs fits plot.
@@ -618,12 +587,13 @@ print(cumsum_test)
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
-modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
+modeling_vars <- c("crime_rate_sqrt", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2", "log_per_capita_alc_taxes", "per_capita_migration"
 )
 
 # difference across all of the data, add in a _diff to the end of the names too
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
+  mutate(crime_rate_sqrt = sqrt(crime_rate))|>
   group_by(county)|>
   summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
                    .names = "{.col}_diff"))
@@ -634,7 +604,7 @@ modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")
 # fit linear model
 model_diff <- lm(
   formula = as.formula(
-    paste("sqrt(crime_rate_diff) ~", paste(modeling_vars_diff, collapse = " + "))
+    paste("crime_rate_sqrt_diff ~", paste(modeling_vars_diff, collapse = " + "))
   ),
   data = acs_5_yearly_data_diff
 )
@@ -653,6 +623,87 @@ kbl(diff_tbl, caption = "Regression Model for Differences in the Square Root of 
   kable_styling("striped", full_width = FALSE) |>
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
+
+```{r diff_model_metrics}
+# Compute model metrics
+diff_model_metrics <- tibble(
+  R2       = c(
+    summary(model_diff)$r.squared
+  ),
+  Adj_R2   = c(
+    summary(model_diff)$adj.r.squared
+  ),
+  RMSE     = c(
+    sqrt(mean(residuals(model_diff)^2))
+  )
+) |>
+  mutate(across(c(R2, Adj_R2, RMSE), ~ round(., 3)))
+
+# Create the kable table
+kbl(diff_model_metrics
+    ) |>kable_styling("striped", full_width = FALSE)
+```
+
+```{r diff_lasso}
+# everything removed manually from main model included here to be selected or not by lasso model except indicator variables that do not change 
+
+modeling_vars_diff <- c("crime_rate_sqrt", "officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
+  "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
+  "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
+  "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",
+  "edu_total_25plus_acs5", "edu_hs_grad_acs5",  "edu_some_college_lt1yr_acs5",  "edu_some_college_gt1yr_acs5",
+  "edu_assoc_degree_acs5",  "edu_bachelors_acs5",  "edu_masters_acs5",  "edu_professional_degree_acs5",
+  "edu_doctorate_acs5",  "households_total_acs5",  "households_income_lt5k_acs5",  
+  "median_household_income_acs5", "pct_lessthan_5kincome",  "pct_highschool_or_greater",
+  "pct_children_missing_parents", "pct_non_white",  "pct_young_males",  "persons_per_household",  "persons_per_m2",
+  "log_pct_non_white",  "log_persons_per_m2",  "log_officers",  
+  "stayed_same_house_acs5", "from_same_county_acs5", 
+  "from_diff_county_same_state_acs5", "from_diff_state_acs5",
+  "from_abroad_acs5", "per_capita_migration")
+
+# difference across all of the data, add in a _diff to the end of the names too
+acs_5_yearly_data_diff <- acs_5_yearly_data|>
+  mutate(crime_rate_sqrt = sqrt(crime_rate))|>
+  group_by(county)|>
+  summarise(across(all_of(modeling_vars_diff), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
+                   .names = "{.col}_diff"))
+
+# with the new modeling variables; drop crime_rate, add _diff
+modeling_vars_diff <- paste0(modeling_vars[-1], "_diff") 
+
+# variables for modeling
+diff_lasso_formula <- reformulate(modeling_vars_diff, response = "crime_rate_sqrt_diff")
+
+x <- model.matrix(diff_lasso_formula, data = acs_5_yearly_data_diff)[, -1]
+
+y <- acs_5_yearly_data_diff$crime_rate_sqrt_diff
+
+# LASSO with cross-validation
+lasso_model <- cv.glmnet(
+  x = x,
+  y = y,
+  alpha = 1,      # lasso alpha
+  nfolds = 10,
+  standardize = TRUE # to fit lasso must standardize values but to interpret/compare to OLS need to return the values to original scale
+)
+
+# find optimal lambda value that minimizes test MSE
+best_lambda <- lasso_model$lambda.min
+
+# produce plot of test MSE by lambda value
+# plot(lasso_model) 
+
+# find coefficients of best model
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+as.matrix(coef(best_model))|>
+  as_tibble(rownames = " ")|>
+  mutate(s0 = ifelse(s0 == 0, -999, s0))|>
+  arrange(-s0)|>
+  mutate(s0 = ifelse(s0 == -999, ".", s0))|>
+  kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
+
+```
+
 
       Overall, the findings from this study suggest that while crime rates fluctuated during the COVID-19 pandemic, the determinants of crime in Minnesota have remained largely stable. The difference model indicates that pandemic-related shifts in population composition and density account for some of the variation in crime changes, but the core relationships between crime and its economic, demographic, and geographic predictors remain consistent both over time and relative to the findings of Norman and Arwood’s 1998 study [1].
 
