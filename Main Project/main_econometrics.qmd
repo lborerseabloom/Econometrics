@@ -219,8 +219,7 @@ theme(
 # further analysis of normality and distribution of data
 acs_5_yearly_data|>
   filter(year == 2019)|>
-  ggplot(aes(x = #sqrt ?
-    crime_rate, fill = as.factor(year))
+  ggplot(aes(x = sqrt(crime_rate), fill = as.factor(year))
          )+
   geom_density(alpha=.8,data = acs_5_yearly_data|>
                    filter(year == 2024))+
@@ -242,10 +241,10 @@ acs_5_yearly_data|>
         legend.background = element_rect(fill = alpha("white", 0.6)),
         legend.title = element_blank())+
   labs(title = "Density of Minnesota Crime Rates by County by Year",
-       x = "Crimes per Capita", y = NULL)
+       x = "Square Root of Crimes per Capita", y = NULL)
 ```
 
-      Looking at the general distribution of crime rates we see a fairly right skewed distribution with the tail holding the largest counties. This changes meaningfully post COVID with a clear drop in crime rates again being seen but with the right skewed shape remaining. This plot demonstrates a potential relationship between crime rates and population density at least for the biggest cities in Minnesota.
+      Looking at the general distribution of crime rates we see a fairly normal distribution after a square root transformation which will be used for the rest of the modeling process. The right tails of both pre and post COVID distributions hold the largest counties suggesting a relationship between population density and crime rates. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential relationship between population density and crime.
 
 ```{r crime_and_pop_mapping}
 
@@ -322,7 +321,7 @@ a + b +
   )
 ```
 
-      A spatial analysis of the post COVID five-year averages for crime rates and population reveals distinct geographic patterns. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, home to the Red Lake Reservation, which can be seen as a clear yellow island in the upper central portion of the crime rate map despite its lack of a high population. Outside of this one county it is hard to determine if counties with reservations differ in their crime rates from ones without. 
+      A spatial analysis of the post COVID five-year averages for crime rates and population reveals distinct geographic patterns and highlights the relationship between population and large cites with crime. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, home to the Red Lake Reservation, which can be seen as a clear yellow island in the upper central portion of the crime rate map despite its lack of a high population. Outside of this one county it is hard to determine if counties with reservations differ in their crime rates from ones without. 
 
 ```{r acs_5_pre_modeling_comparisons}
 ### vars to calculate stats across for modeling
@@ -429,7 +428,7 @@ acs_5_yearly_data |>
     values_to = "value"
   )|>
 # Make one big faceted plot
-ggplot(aes(x = value, y = .data[[target]], colour = as.factor(year))) +
+ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ variable, scales = "free_x") +
@@ -437,7 +436,7 @@ ggplot(aes(x = value, y = .data[[target]], colour = as.factor(year))) +
   labs(
     x = "
     ",
-    y = "Crime Rate",
+    y = "Square Root of Crime Rate",
     title = "Modeling Variable's Relationships With Crime Pre and Post Covid") +
   scale_color_manual(
     values = c("2019" = "#619CFF",
@@ -463,15 +462,15 @@ ggplot(aes(x = value, y = .data[[target]], colour = as.factor(year))) +
 formula <- reformulate(modeling_vars, response = "crime_rate")
 
 # Fit models
-pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
-post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
+# pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
+# post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
 
 # covid interactions with officers, alc, high school, reservations, cities, migration all insignificant
 full_formula <- reformulate(c(modeling_vars, "post_covid","post_covid*log_officers",
                              "post_covid*pct_highschool_or_greater", "post_covid*per_capita_migration",
                               "post_covid*log_per_capita_alc_taxes", "post_covid*top_cities",
                               "post_covid*reservations", "post_covid*log_per_capita_alc_taxes"), 
-                            response = "crime_rate")
+                            response = "sqrt(crime_rate)")
 
 total_model  <- lm(full_formula, data = acs_5_yearly_data)
 
@@ -511,14 +510,14 @@ combined <- bind_rows(
 # full_rows <- which(combined$Model == "Full Model")
 
 # Create the grouped kable table
-kbl(combined, caption = "Regression Models with Classical and Robust Standard Errors (HC3)") |>
+kbl(combined, caption = "Regression Models with Classical and Robust Standard Errors Against the Square Root of Crime Rates") |>
   kable_styling("striped", full_width = FALSE) #|>
   # group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
   # group_rows("Post-COVID", min(post_rows), max(post_rows)) |>
   # group_rows("Full Model", min(full_rows), max(full_rows))
 ```
 
-      The resulting model reveals multiple noteworthy relationships between county-level crime and the sociological factors outlined in Norman, J. Mark and Arwood, Donald E’s study \[1\]. The main variables significant at a <.05 level being median household income, persons per m^2^, and the indicator for reservations. Per capita alcohol tax revenue and the heterogeneity of counties remain somewhat significant but the rest of the variable seem to have no significant relationship with crime rates. Furthermore, almost every interaction term included in the model as well as the post COVID indicator variable remain insignificant at the >.5 level. This result shows a drastic change from Norman and Arwood's previous findings and also shows that despite the spike in crime rates during COVID these impacts have not had a large impact on how crime relates to the traditional sociological predictors of crime.
+      The resulting model reveals multiple noteworthy relationships between county-level crime and the sociological factors outlined in Norman, J. Mark and Arwood, Donald E’s study \[1\]. The main variables significant at a <.05 level being median household income, persons per m^2^, and the indicator for reservations. The rest of the variables in the model seem to be relatively insignificant at predicting crime rates. Furthermore, almost every interaction term included in the model as well as the post COVID indicator variable remain insignificant at the >.5 level. This result shows a drastic change from Norman and Arwood's previous findings and also shows that despite the spike in crime rates during COVID these impacts have not had a large impact on how crime relates to the traditional sociological predictors of crime.
 
 ```{r acs5_modeling_performance}
 # Compute model metrics
@@ -583,6 +582,11 @@ kbl(model_metrics#, caption = "Model Performance Summary (R², Adjusted R², RMS
 ```{r acs5_modeling_resids_v_fits}
 plot(total_model, 1)
 ```
+      This model also mostly satisfies it's normality in the residuals assumption with the majority of residuals matching up with the normal distribution. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is small enough to not impact our conclusions to heavily.
+
+```{r acs5_modeling_resid_normality}
+plot(total_model, 2)
+```
 
       The full model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. Consistent with Norman and Arwood's previous work, only a small subset of variables remain statistically significant at conventional levels, as well as most interaction terms with the post-COVID indicator not being statistically distinguishable from zero.\
       The first notable finding concerns median household income, which continues to exhibit a statistically significant negative relationship with crime rates. Although the estimated coefficient is very small in magnitude due to the large values(50k-120k), the relationship is precisely estimated and highly significant, suggesting that counties with higher median incomes experience lower crime rates, holding other factors constant. This finding is consistent with Norman and Arwood’s results, where the related measure of economic deprivation (“percent below poverty”) was positively associated with crime, albeit only marginally significant. Taken together, both studies support the conclusion that economic conditions remain an important determinant of crime, even if the magnitude of the effect isn't particularly large.\
@@ -590,7 +594,7 @@ plot(total_model, 1)
       The indicator for reservations is also statistically significant and positive, indicating higher crime rates in counties containing reservations. This effect persists even after controlling for income, density, and demographic characteristics, and shows no meaningful change in the post-COVID period. This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason fro this crime can be seen in the FBI's handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the 'serious' offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.\
       Several variables that were theoretically important or previously marginally significant show weaker evidence in the full model. The log of the percent of non-white residents is positive but only marginally significant, and its interaction with the post-COVID indicator is not statistically significant. This suggests that racial heterogeneity, while correlated with crime in simpler models, does not independently explain variation once density, income, and other controls are included. As in prior work, this relationship likely reflects broader geographic and socioeconomic clustering rather than a direct causal mechanism.\
       Similarly, per capita alcohol tax revenue and graduation rates display small coefficients and only marginal or insignificant effects. In particular, the percentage of the population with a high school education or greater is not statistically significant in either the main effect or its post-COVID interaction. This contrasts with earlier interpretations that framed education as a key predictor and suggests that education may primarily act as more of a proxy for urbanization and density rather than exerting a direct influence on crime.\
-      Migration, large city status, and law enforcement presence additionally show no statistically significant effects in the full model. Both the main effects and interaction terms for migration and police officers per capita are quite insignificant, indicating little evidence that these factors systematically explain cross-county crime variation once other controls are included. The findings for police presences aligns closely with Norman and Arwood’s findings, with little predictive power being found. However, the lack of significance found in the migration variable represents a shift from their original work. Migration in Norman and Arwood's [1] study was one of three key findings with a positive, meaningful, and significant impact on crimes. This shift could be due to changes in migration and crime or the inclusion of further control variables such as large cities and reservations.\
+      Migration, large city status, and law enforcement presence also show no statistically significant effects in the full model. Both the main effects and interaction terms for migration and police officers per capita are quite insignificant, indicating little evidence that these factors systematically explain cross-county crime variation once other controls are included. The findings for police presences aligns closely with Norman and Arwood’s findings, with little predictive power being found. However, the lack of significance found in the migration variable represents a shift from their original work. Migration in Norman and Arwood's [1] study was one of three key findings with a positive, meaningful, and significant impact on crimes. This shift could be due to changes in migration and crime or the inclusion of further control variables such as large cities and reservations.\
       Finally, the post-COVID indicator itself is negative but highly statistically insignificant, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties. This interpretation is again supported by structural break tests, which fail to detect meaningful parameter shifts over time at again highly insignificant levels.
 
 ```{r chow_cum_tests}
@@ -610,7 +614,7 @@ print(cumsum_test)
 # plot(cumsum_process)
 ```
 
-      Fitting a model using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates. Using this approach, the only two variables found to have a statistically significant relationship on the change in crime rates are the logarithm of the percentage of the population identified as white and the population density measured in m^2^. This contrasts with the conclusions of the previous linear model as the previously significant and meaningful income predictor shows no relationship. The significance of the percent non-white variable and population density in this model seem to be more representative of the areas which were most affected by the pandemic, such as urban centers and reservations, rather than a direct impact.
+      Fitting a model using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates. Using this approach, the variables found to have a statistically significant relationship on the change in crime rates are the population density measured in m^2^, the per capita migration, and median household income, with the logarithm of the percentage of the population identified as white being just not significant at a >.05 level. This echos the conclusions of the previous model as the same general structure and change in meaningful factors remain impact on the changes in crime. Any significance of the percent non-white variable seems to be spurious as it was insignificant in the previous model and remains the same if less so in this model.
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
@@ -630,7 +634,7 @@ modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")
 # fit linear model
 model_diff <- lm(
   formula = as.formula(
-    paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
+    paste("sqrt(crime_rate_diff) ~", paste(modeling_vars_diff, collapse = " + "))
   ),
   data = acs_5_yearly_data_diff
 )
@@ -645,7 +649,7 @@ diff_tbl <- tidy(model_diff) |>
   select(term, estimate, std.error, p.value)|>
   arrange(p.value)
 
-kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
+kbl(diff_tbl, caption = "Regression Model for Differences in the Square Root of Crime Rate") |>
   kable_styling("striped", full_width = FALSE) |>
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
@@ -671,7 +675,7 @@ modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes
   "from_diff_county_same_state_acs5", "from_diff_state_acs5",
   "from_abroad_acs5", "per_capita_migration")
 
-lasso_formula <- reformulate(modeling_vars, response = "crime_rate")
+lasso_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
 
 # Create model matrix: lasso works with matrices not normal df
 # use previous formula used in full model with covid indicator included 
