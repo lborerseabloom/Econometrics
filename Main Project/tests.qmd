@@ -1,0 +1,35 @@
+---
+title: "tests"
+format: html
+---
+
+```{r}
+library(tidyverse)
+
+crime_data <- readRDS("../data/crime_data.rds")
+mapping <- readRDS("../data/mapping.rds")
+new_mapping <- read_csv("C:/Users/Mail Moolbaes/Desktop/ori directory.csv", na=c("N/A"))
+```
+
+```{r}
+mapping <- mapping[,c(1,2)]
+
+maps <- full_join(new_mapping, mapping, by=join_by(ORI==ori))
+
+maps %>%
+  mutate(
+    county_std  = tolower(trimws(county)),
+    COUNTY_std  = tolower(trimws(COUNTY))
+  ) %>%
+  filter(
+    county_std != COUNTY_std |
+    is.na(county_std) != is.na(COUNTY_std)
+  )
+
+```
+
+```{r}
+anti_new <- anti_join(new_mapping, mapping, by=join_by(ORI==ori))
+anti_old <- anti_join(mapping,new_mapping, by=join_by(ori==ORI))
+```
+
