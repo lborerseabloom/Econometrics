@@ -96,7 +96,7 @@ Feb x 2026
 ### Data Description
 
       The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in this [Github repository](https://github.com/lborerseabloom/Econometrics.git) to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository.\
-      To start, the FBI's counts of crimes and officers were scraped from their website at a monthly level across all police agencies in Minnesota. As discussed by James, Nathan, and Logan Rishard \[2\], this data contains quite a few intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecommunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] the local police agency data was mapped onto counties.
+      To start, the FBI's counts of crimes and officers were scraped from their website at a monthly level across all police agencies in Minnesota. As discussed in the literature review, James, Nathan, and Logan Rishard \[2\]highlight the intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecommunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] the local police agency data was mapped onto counties. As this data is a scanned PDF document Optical Character Recognition (OCR) was used to convert the data into machine readable text. This process does have some flaws due to the poor quality of the scan and a best effort was made to correct the minimal problems introduced into the data through this process. Additionally, as can be seen in the NLETS ORI directory some police agencies that operate federally or across the whole state cannot be tracked by county and are therefore left out of the crime counts. 
 
 ```{r homicides_time_series}
 # Monthly totals
@@ -142,9 +142,9 @@ theme(
 )
 ```
 
-      A brief look at the monthly/yearly plot of homicides over time shows the issues in the data which are present across all of the FBI's monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records as stated in James and Logan (2008) \[2\]. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.\
-      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue's website [6]. The two main inaccuracies brought here being that as the gross sales data is not used in calculating taxes it is more prone to taxpayer errors, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are scrutinized for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a small number of businesses and our sample size is large enough that this likely isn't a problem.\
-      Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue's data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers.
+      Above, a brief look at the monthly/yearly plot of homicides over time shows the issues in the data which are present across all of the FBI's monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records. James and Logan's 2008 report \[2\] details many of the previous shifts in crime data collection and reporting as well. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.\
+      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue's website \[6\]. The two main inaccuracies cited are that as the gross sales data is not used in calculating taxes it is under less scrutiny than other data and accuracy cannot be guaranteed, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are closely examined for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a negligible number of businesses.\ 
+      Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue's data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers as can be seen below.
 
 ```{r alc_trends}
 alc_data|>
@@ -155,14 +155,18 @@ alc_data|>
   geom_point()+
   geom_line()+
   theme_minimal()+
-  theme(legend.position = "none")+
+   scale_color_discrete(
+    labels = c("Reported Values", "Imputed Value")
+  )+
+  theme(legend.position = c(.9,.15),
+        legend.title = element_blank())+
   labs(x=NULL, y="Revenue From Taxes on Alcohol Sales",
        title = "Minnesota Total Revenue From Taxes on Alcohol Sales")
 ```
 
-      With this data now organized and graphed, the clear positive trend in the revenue from alcohol sales taxes can now be seen. The most notable feature of this plot being the massive dip in 2020 and recovery to the trend in 2021.\
-      County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias \[5\]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases nonetheless, will have to be addressed in the final interpretation of the results as a potential source of bias.\
-      The dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes collected from the FBI and dividing it by the total population estimate from the census. The available demographic variables (officers per capita, median household income, households with less than 5k income, people with a high school or greater degree, children missing parents, percent non white, young males, persons per household, persons per m^2^, and net migration) used in Norman and Arwood’s 1998 study \[1\] were then calculated using a variety of census estimates.\
+      With this data now organized and graphed above, the clear positive trend in the revenue from alcohol sales taxes can now be seen. The most notable feature of this plot being the massive dip in 2020 and recovery to the trend in 2021. These trends differ from the common narrative seen in studies such as the 2024 National Survey on Drug Use and Health \[8\] and the Minnesota Department of Health \[9\]. These reports suggest that alcohol use by adults and minors has decreased or stayed the same in the past years and had a slight uptick during COVID. This goes almost opposite to the revenue from taxes on alcohol collected by the state which seems counterintuitive and could suggest that Norman and Arwood's use of alcohol taxes as a proxy for drinking rates is a flawed measure.\
+      County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias \[5\]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases, generated from who is sampled and who chooses to respond to a poll, will have to be addressed in the final interpretation of the results as a potential source of bias.\
+      The dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes collected from the FBI and dividing it by the total population estimate from the census. The available demographic variables (officers per 1000 people, median household income, the percent of households with less than 5k income, the percent of people with a high school or greater degree, the percent of children missing parents, the percent non white, the percent young males, persons per household, persons per m^2^, and per capita net migration) used in Norman and Arwood’s 1998 study \[1\] were then calculated using a variety of census estimates.\
       The final data being used for modeling contains two rows for each of the 87 Minnesota counties representing the pre and post COVID periods with 5 year average estimates for 2015-2019 and 2020-2024 respectively. The variables used in Norman and Arwood’s 1998 study \[1\] will be tested in their effects on crime rates before and after to address the question of: how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?\
 
 ### Research Findings
@@ -214,7 +218,7 @@ theme(
 )
 ```
 
-      Using ACS 1 year estimates of population, a yearly plot of crime rates and population reveals a consistent downward trend in crime rates per capita, dropping with a steeper slope than the increase in population. This pattern suggests that crime rates have been declining naturally over time. However, consistent with the predictions in the study by Boman, J.H., Gallupe, O, \[3\] there is a local peak of crime in 2020 and 2021 during the pandemic lockdown. Interestingly enough even before the pandemic there was still a sharp uptick in crime rates in 2019 suggesting other factors at play as well. Following this deviation, crime rates decline again by 2023, resuming the pre-pandemic trend. This indicates that the pandemic period represents a temporary disturbance rather than a lasting structural shift in Minnesotan crime trends.
+      Using ACS 1 year estimates of population, a yearly plot of crime rates and population reveals a consistent downward trend in crime rates per capita, dropping with a steeper slope than the increase in population. This pattern suggests that crime rates have been declining naturally over time. However, consistent with the predictions in the study by Boman, J.H., Gallupe, O, \[3\] there is a local peak of crime in 2020 and 2021 during the pandemic lockdown. Interestingly, even before the pandemic there was still a sharp uptick in crime rates in 2019 suggesting other factors at play as well. Following this deviation, crime rates decline again by 2023, resuming the pre-pandemic trend. This indicates that the pandemic period represents a temporary disturbance rather than a lasting structural shift in Minnesotan crime trends.
 
 ```{r homicides_time_series3}
 # further analysis of normality and distribution of data
@@ -245,7 +249,7 @@ acs_5_yearly_data|>
        x = "Square Root of Crimes per Capita", y = NULL)
 ```
 
-      Looking at the general distribution of crime rates we see a fairly normal distribution after a square root transformation which will be used for the rest of the modeling process. The right tails of both pre and post COVID distributions hold the largest counties suggesting a relationship between population density and crime rates. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential relationship between population density and crime.
+      Looking at the general distribution of crime rates post COVID we see a approximately normal distribution after a square root transformation, this transformation will be used through the rest of the modeling process. However the pre COVID distribution remains slightly left skewed but not dramatically. The right tails of both pre and post COVID distributions hold the largest counties suggesting there could be a relationship between population density and crime rates. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential relationship between population density and crime.
 
 ```{r crime_and_pop_mapping}
 
@@ -322,7 +326,7 @@ a + b +
   )
 ```
 
-      A spatial analysis of the post COVID five-year averages for crime rates and population reveals distinct geographic patterns and highlights the relationship between population and large cites with crime. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, home to the Red Lake Reservation, which can be seen as a clear yellow island in the upper central portion of the crime rate map despite its lack of a high population. Outside of this one county it is hard to determine if counties with reservations differ in their crime rates from ones without. 
+      A spatial analysis of the post COVID five-year averages for crime rates and population reveals distinct geographic patterns and highlights the relationship between population and large cites with crime. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, which can be seen as a clear yellow county in the upper central portion of the crime rate map despite its lack of a high population. 
 
 ```{r acs_5_pre_modeling_comparisons}
 ### vars to calculate stats across for modeling
@@ -398,7 +402,7 @@ kable(crime_correlation, format = "html",
              caption = "Signifigance of correlation with crime rates")|>kable_styling("striped")  
 ```
 
-      Further correlation analyses show that many of the variables of interest exhibit reasonably strong and significant correlations with per capita crime. Some of the largest differences seen here between this study and Norman and Arwood's [1] is the finding of persons per household to be significant while they found no significant correlation, as well as the insignificance of the correlations with median household income and officers per 1000 people.
+      Further, correlation analyses show that many of the variables of interest exhibit reasonably strong and significant correlations with per capita crime. Some of the largest differences seen here between this study and Norman and Arwood's [1] is the finding of persons per household to be significant while they found no significant correlation, as well as the insignificance of the correlations with median household income and officers per 1000 people. Particularly the persons per household correlation change aligns with Boman and Gallupe's 2020 study suggesting that the more people quarantined together, the more violence that could occur.
 
 ```{r relationship_analysis}
 acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
@@ -456,8 +460,8 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 )
 ```
 
-      After fitting preliminary models pct_children_missing_parents, pct_young_male, and persons_per_household were removed due to insignificance at a >.5 level. pct_lessthan_5kincome was also removed due to a -.7 correlation with median income and being a faulty measure over time due to the change in value of $5000 over time. Variables with log_ in front of their names also had a natural log function applied to the in order to stabilize their variances. Three new features were also added to the model, reservations as an indicator for if a county has a reservation in it, top_cities as an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which are contain the 5 largest cities in Minnesota, and a pre and post COVID indicator for if the data is from the 2019(pre) or 2024(post) ACS 5 estimates. This analysis leaves us with these 9 variables to measure per capita crime with.\
-      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to this their interactions with the pre and post COVID indicator will also be included in the model.\
+      After fitting preliminary models pct_children_missing_parents, pct_young_male, and persons_per_household were removed due to insignificance at a >.5 level. pct_lessthan_5kincome was also removed due to a -.7 correlation with median income and being a faulty measure over time due to the change in value of $5000 over time. Variables with log_ in front of their names also had a natural log function applied to them in order to stabilize their variances. Three new features were also added to the model, reservations as an indicator for whether a county has a reservation in it, top_cities as an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which contain the 5 largest cities in Minnesota, and a pre and post COVID indicator for if the data is from the 2019(pre) or 2024(post) ACS 5 estimates. This analysis leaves us with these 9 variables to measure per capita crime with.\
+      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to the plots above, their interactions with the pre and post COVID indicator will also be included in the model.\
 
 ```{r acs5_modeling}
 formula <- reformulate(modeling_vars, response = "crime_rate")
@@ -844,4 +848,15 @@ as.matrix(coef(best_model))|>
 
 \[7\] Law Enforcement on Tribal Land
 <https://www.fbi.gov/investigate/violent-crime/indian-country-crime>
+
+\[8\] Substance Abuse and Mental Health Services Administration. (2025). 
+Key substance use and mental health indicators in the United States: 
+Results from the 2024 National Survey on Drug Use and Health 
+(HHS Publication No.PEP25-07-007, NSDUH Series H-60). 
+Center for Behavioral Health Statistics and Quality, 
+Substance Abuse and Mental Health Services Administration. 
+<https://www.samhsa.gov/data/sites/default/files/reports/rpt56287/2024-nsduh-annual-national-report.pdf>
+
+\[9\] Minnesota Department of Health: Alcohol Use Among Youth in Minnesota Report
+<https://www.health.state.mn.us/communities/alcohol/documents/youthalcoholuse.pdf>
 :::
