@@ -33,3 +33,9 @@ anti_new <- anti_join(new_mapping, mapping, by=join_by(ORI==ori))
 anti_old <- anti_join(mapping,new_mapping, by=join_by(ori==ORI))
 ```
 
+```{r}
+df <- read_csv("../data/ai_mappings.csv")
+df <- distinct(df)
+write_csv(df, "../data/ai_mappings.csv")
+```
+
