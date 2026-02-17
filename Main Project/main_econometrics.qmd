@@ -48,7 +48,6 @@ alc_data <- readRDS("../data/alc_data.rds")
 #           fix interpretation of results and conclusions once models are valid
 #               give the interpretation of the actual signifigant estimates as well
 #       abstract section(can change around ASA abstract)
-#       remake Norman and Arwood model table
 -->
 ```
 
@@ -77,7 +76,37 @@ Feb x 2026
       This project is informed by several key sources: Norman and Arwood (1998) \[1\], James and Logan (2008) \[2\], and Boman and Gallupe (2020) \[3\]. Together, these works provide a foundation for understanding the sociological determinants of crime, the limitations of available data, and the unique disruptions brought about by the COVID-19 pandemic.\
       Norman and Arwood’s 1998 study analyzed the relationship between crime rates and a variety of sociological measures at the county level in Minnesota. Their findings demonstrated that among a variety of traditional sociological indicators of crime only alcohol consumption proxied by the county's alcohol tax revenue, net migration in and out of the county, and households missing one or both parents, were significantly related to crime in Minnesota counties at the .05 level.
 
-![](images/Model.png)
+```{r og_regression}
+regression_table <- tibble::tribble(
+  ~Variable,   ~B,          ~SE_B,      ~Beta,     ~T,      ~Sig_T,
+  "ALCOHOLTAXES",    1595.339899, 380.762355, 0.333667,  4.190,  0.0001,
+  "BELOWPOVERTYLINE",   4.658749,    2.749988,   0.159407,  1.694,  0.0943,
+  "COPRATIO", -1.720027,    1.973648,  -0.065098, -0.871,  0.3862,
+  "PERSONSWITHDIPLOMA",   3.784803,    3.844617,   0.117400,  0.984,  0.3280,
+  "FEMALEHEADED",   0.169990,    0.434913,   0.023029,  0.391,  0.6970,
+  "HETEROGENEITY",    41.590585,   25.205936,  0.128952,  1.650,  0.1031,
+  "NETMIGRATION",    2.954238,    1.088339,   0.232242,  2.714,  0.0082,
+  "NOT2PARENTS",   83.285311,   23.982754,  0.332168,  3.473,  0.0009,
+  "PERSONSPERMILE",    139.621941,  72.316877,  0.168757,  1.931,  0.0573,
+  "PERCENTYOUNGMALES",  -207.832127,  193.873034, -0.081468, -1.072, 0.2871,
+  "Constant", -977.272804,  374.181502, NA,       -2.612,  0.0108
+)|>
+  mutate(across(
+    where(is.numeric),
+    ~ formatC(.x, format = "f", digits = 5)
+  ))
+
+kable(
+  regression_table,
+  format = "html",
+  caption = "Variables in the Original Regression"
+) |>
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
+```
+
 
       This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating data up to the 2024 ACS 5 estimates and examining how these relationships may have shifted due to the COVID-19 pandemic.\
       While this study aims to replicate the factors studied in Norman and Arwood's original study there are some key differences in the analyses. Comparing the variables used in each study, both crime rates are a 5 year average of part 1 index crimes retrieved from the FBI's crime reports. To measure household income levels the study includes the median income, percentage of the population below \$5000 income, and below the poverty line. Both studies draw from the U.S census' 5 year ACS estimates. The same is done for the measures of heterogeneity, net migration, households with less than two parents, the percent of the population made up of young males, and the percent of the population with a high school diploma or greater. In the original study, population density is stated to come from the census' estimates, but due to lack of availability is determined in this study to be the population of the county divided by the area of the county in m^2^. The final explanatory variable used in their study, revenue from taxes on alcohol sales, comes from the Minnesota Department of Revenue website and is also averaged across 5 year periods. Having mostly the same source data as Norman and Arwood's [1] original study, a general comparison to their original 1998 study is still possible with the understanding of the potential and real changes in the data's collection and reporting.\
@@ -470,7 +499,7 @@ formula <- reformulate(modeling_vars, response = "crime_rate")
 # pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
 # post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
 modeling_vars <- c( "median_household_income_acs5", "log_pct_non_white", "log_persons_per_m2",
-  "reservations", "log_per_capita_alc_taxes", "post_covid"
+  "reservations", "log_per_capita_alc_taxes", "post_covid", "persons_per_household:persons_per_m2"
 )
 
 full_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
@@ -590,8 +619,6 @@ print(cumsum_test)
 ```{r lasso_regression}
 set.seed(123)
 # everything removed manually from main model included here to be selected or not by lasso model
-
-
 modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
   "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
   "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
@@ -607,7 +634,13 @@ modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes
   "from_diff_county_same_state_acs5", "from_diff_state_acs5",
   "from_abroad_acs5", "per_capita_migration")
 
-lasso_formula <- reformulate(modeling_vars, response = "crime_rate_sqrt")
+lasso_formula <- as.formula(
+  paste(
+    "crime_rate_sqrt ~ (",
+    paste(modeling_vars, collapse = " + "),
+    ")^2" # all interaction terms
+  )
+)
 
 # Create model matrix: lasso works with matrices not normal df
 # use previous formula used in full model with covid indicator included 
@@ -640,9 +673,9 @@ best_lambda <- lasso_model$lambda.min
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 as.matrix(coef(best_model))|>
   as_tibble(rownames = " ")|>
-  mutate(s0 = ifelse(s0 == 0, -999, s0))|>
+  mutate(s0 = ifelse(abs(s0) <= 0.0001, NA, s0))|>
+  drop_na(s0)|>
   arrange(-s0)|>
-  mutate(s0 = ifelse(s0 == -999, ".", s0))|>
   kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
 ```
 
@@ -747,6 +780,7 @@ kbl(diff_model_metrics
       The LASSO model also only selects the population density measure, again with a negative coefficient showing it as the only meaningful predictor among these sociological factors for explaining the changes in crime rates over COVID.
 
 ```{r diff_lasso}
+set.seed(123)
 # everything removed manually from main model included here to be selected or not by lasso model except indicator variables that do not change 
 
 modeling_vars_diff <- c("crime_rate_sqrt", "officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
@@ -799,9 +833,9 @@ best_lambda <- lasso_model$lambda.min
 best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
 as.matrix(coef(best_model))|>
   as_tibble(rownames = " ")|>
-  mutate(s0 = ifelse(s0 == 0, -999, s0))|>
+  mutate(s0 = ifelse(s0 == 0, NA, s0))|>
+  drop_na(s0)|>
   arrange(-s0)|>
-  mutate(s0 = ifelse(s0 == -999, ".", s0))|>
   kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
 
 ```
