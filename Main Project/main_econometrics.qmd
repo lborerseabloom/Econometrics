@@ -43,12 +43,12 @@ alc_data <- readRDS("../data/alc_data.rds")
 # PAPER TODOs
 #    Conclusions
 #    Cannon Comments:
-#       general fixes
-#       more comparisons with norman and arwood
-#       drop insignifigant modeling variables
-#       where possible 1yr time series comparisons
-#       lasso interactions maybe between everything?
+#       lasso interactions between everything
+#       modeling: fix auto/spatial correlation 
+#           fix interpretation of results and conclusions once models are valid
+#               give the interpretation of the actual signifigant estimates as well
 #       abstract section(can change around ASA abstract)
+#       remake Norman and Arwood model table
 -->
 ```
 
@@ -143,7 +143,7 @@ theme(
 ```
 
       Above, a brief look at the monthly/yearly plot of homicides over time shows the issues in the data which are present across all of the FBI's monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records. James and Logan's 2008 report \[2\] details many of the previous shifts in crime data collection and reporting as well. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.\
-      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue's website \[6\]. The two main inaccuracies cited are that as the gross sales data is not used in calculating taxes it is under less scrutiny than other data and accuracy cannot be guaranteed, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are closely examined for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a negligible number of businesses.\ 
+      Alcohol sales tax information was retrieved from the Minnesota Department of Revenue's website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue's website \[6\]. The two main inaccuracies cited are that as the gross sales data is not used in calculating taxes it is under less scrutiny than other data and accuracy cannot be guaranteed, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are closely examined for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a negligible number of businesses. \
       Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue's data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers as can be seen below.
 
 ```{r alc_trends}
@@ -461,7 +461,7 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 ```
 
       After fitting preliminary models pct_children_missing_parents, pct_young_male, and persons_per_household were removed due to insignificance at a >.5 level. pct_lessthan_5kincome was also removed due to a -.7 correlation with median income and being a faulty measure over time due to the change in value of $5000 over time. Variables with log_ in front of their names also had a natural log function applied to them in order to stabilize their variances. Three new features were also added to the model, reservations as an indicator for whether a county has a reservation in it, top_cities as an indicator for Ramsey, Hennipen, Olmsted, St. Louis, and Stearns counties which contain the 5 largest cities in Minnesota, and a pre and post COVID indicator for if the data is from the 2019(pre) or 2024(post) ACS 5 estimates. This analysis leaves us with these 9 variables to measure per capita crime with.\
-      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to the plots above, their interactions with the pre and post COVID indicator will also be included in the model.\
+      Across these predictors a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to the plots above, their interactions with the pre and post COVID indicator will also be included in the model below.\
 
 ```{r acs5_modeling}
 formula <- reformulate(modeling_vars, response = "crime_rate")
@@ -469,12 +469,11 @@ formula <- reformulate(modeling_vars, response = "crime_rate")
 # Fit models
 # pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
 # post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
+modeling_vars <- c( "median_household_income_acs5", "log_pct_non_white", "log_persons_per_m2",
+  "reservations", "log_per_capita_alc_taxes", "post_covid"
+)
 
-# covid interactions with officers, alc, high school, reservations, cities, migration all insignificant
-full_formula <- reformulate(c(modeling_vars, "post_covid","post_covid*log_officers",
-                             "post_covid*pct_highschool_or_greater", "post_covid*per_capita_migration", "post_covid*log_per_capita_alc_taxes", 
-                             "post_covid*top_cities",  "post_covid*reservations"), 
-                            response = "sqrt(crime_rate)")
+full_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
 
 total_model  <- lm(full_formula, data = acs_5_yearly_data)
 
@@ -521,7 +520,7 @@ kbl(combined, caption = "Regression Models with Classical and Robust Standard Er
   # group_rows("Full Model", min(full_rows), max(full_rows))
 ```
 
-      The resulting model reveals multiple noteworthy relationships between county-level crime and the sociological factors outlined in Norman, J. Mark and Arwood, Donald E’s study \[1\]. The main variables significant at a <.05 level being median household income, persons per m^2^, and the indicator for reservations. The rest of the variables in the model seem to be relatively insignificant at predicting crime rates. Furthermore, almost every interaction term included in the model as well as the post COVID indicator variable remain insignificant at the >.5 level. This result shows a drastic change from Norman and Arwood's previous findings and also shows that despite the spike in crime rates during COVID these impacts have not had a large impact on how crime relates to the traditional sociological predictors of crime.
+      The resulting model reveals multiple noteworthy relationships between county-level crime and the sociological factors outlined in Norman, J. Mark and Arwood, Donald E’s study \[1\]. In the above model log_officers, top_cities, pct_highschool_or_greater, and all of their interaction terms were removed due to insignificance. The main variables significant at a <.01 level being median household income, persons per m^2^, the indicator for reservations, and per capita alcohol taxes. The rest of the variables in the model seem to be relatively insignificant at predicting crime rates besides the log of the percent of non white people in a county. Furthermore, almost every interaction term included in the model as well as the post COVID indicator variable remain insignificant at the >.5 level. This result shows a drastic change from Norman and Arwood's previous findings and also shows that despite the spike in crime rates during COVID these impacts have not had a large impact on how crime relates to the traditional sociological predictors of crime.
 
 ```{r acs5_modeling_performance}
 # Compute model metrics
@@ -550,7 +549,7 @@ kbl(model_metrics#, caption = "Model Performance Summary (R², Adjusted R², RMS
     ) |>kable_styling("striped", full_width = FALSE)
 ```
 
-      This model explains 64% of the variance in crime rates and having an RMSE of about half of the standard deviation in crime rates. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in the residuals vs fits plot.
+      This model explains 61% of the variance in crime rates and having an RMSE of about half of the standard deviation in crime rates. Heteroskedastic robust errors are used to compensate for some of the variance issues, particularly with medium level crime rates seen in the residuals vs fits plot.
 
 ```{r acs5_modeling_resids_v_fits}
 plot(total_model, 1)
@@ -563,12 +562,12 @@ plot(total_model, 2)
 
       The linear model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. As in Norman and Arwood's previous work, only a small subset of variables remain statistically significant at conventional levels, as well as most interaction terms with the post-COVID indicator not being statistically distinguishable from zero.\
       The first notable finding concerns median household income, which continues to exhibit a statistically significant negative relationship with crime rates. Although the estimated coefficient is very small in magnitude due to the large values(50k-120k), the relationship is precisely estimated and highly significant, suggesting that counties with higher median incomes experience lower crime rates, holding other factors constant. This finding is consistent with Norman and Arwood’s results, where the related measure of economic deprivation (“percent below poverty”) was positively associated with crime, albeit only marginally significant. Taken together, both studies support the conclusion that economic conditions remain an important determinant of crime, even if the magnitude of the effect isn't particularly large.\
-      Population density emerges as one of the most stable and substantively meaningful predictors in the model. The log of persons per square meter is positive and highly significant, indicating that denser counties experience higher crime rates. This relationship holds consistently across specifications and does not meaningfully change after the start of COVID-19. This finding strengthens the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.\
-      The indicator for reservations is also statistically significant and positive, indicating higher crime rates in counties containing reservations. This effect persists even after controlling for income, density, and demographic characteristics, and shows no meaningful change in the post-COVID period. This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason fro this crime can be seen in the FBI's handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the 'serious' offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.\
+      Population density emerges as one of the most stable and substantively meaningful predictors in the model. The log of persons per square meter is positive and highly significant, indicating that denser counties experience higher crime rates. Strengthening the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.\
+      The indicator for reservations is also statistically significant and positive, indicating higher crime rates in counties containing reservations. This effect persists even after controlling for income, density, and demographic characteristics, and shows no meaningful change in the post-COVID period. This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason for this can be seen in the FBI's handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the 'serious' offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.\
       Several variables that were theoretically important or previously marginally significant show weaker evidence in the full model. The log of the percent of non-white residents is positive but only marginally significant, and its interaction with the post-COVID indicator is not statistically significant. This suggests that racial heterogeneity, while correlated with crime in simpler models, does not independently explain variation once density, income, and other controls are included. As in prior work, this relationship likely reflects broader geographic and socioeconomic clustering rather than a direct causal mechanism.\
       Similarly, per capita alcohol tax revenue and graduation rates display small coefficients and only marginal or insignificant effects. In particular, the percentage of the population with a high school education or greater is not statistically significant in either the main effect or its post-COVID interaction. This contrasts with earlier interpretations that framed education as a key predictor and suggests that education may primarily act as more of a proxy for urbanization and density rather than exerting a direct influence on crime.\
       Migration, large city status, and law enforcement presence also show no statistically significant effects in the full model. Both the main effects and interaction terms for migration and police officers per capita are quite insignificant, indicating little evidence that these factors systematically explain cross-county crime variation once other controls are included. The findings for police presences aligns closely with Norman and Arwood’s findings, with little predictive power being found. However, the lack of significance found in the migration variable represents a shift from their original work. Migration in Norman and Arwood's [1] study was one of three key findings with a positive, meaningful, and significant impact on crimes. This shift could be due to changes in migration and crime or the inclusion of further control variables such as large cities and reservations.\
-      Finally, the post-COVID indicator itself is negative but highly statistically insignificant, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties. This interpretation is again supported by structural break tests, which fail to detect meaningful parameter shifts over time at again highly insignificant levels.
+      Finally, the post-COVID indicator itself is negative but highly statistically insignificant, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties. This interpretation is again supported by structural break tests below, which fail to detect meaningful parameter shifts over time at again highly insignificant levels.
 
 ```{r chow_cum_tests}
 # Chow test using the 'post_covid' variable as the breakpoint
@@ -608,14 +607,18 @@ modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes
   "from_diff_county_same_state_acs5", "from_diff_state_acs5",
   "from_abroad_acs5", "per_capita_migration")
 
-lasso_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
+lasso_formula <- reformulate(modeling_vars, response = "crime_rate_sqrt")
 
 # Create model matrix: lasso works with matrices not normal df
 # use previous formula used in full model with covid indicator included 
-x <- model.matrix(lasso_formula, data = acs_5_yearly_data)[, -1]
+acs_5_yearly_data <- acs_5_yearly_data|>
+                    mutate(crime_rate_sqrt = sqrt(crime_rate))
+
+x <- model.matrix(lasso_formula, 
+                  data = acs_5_yearly_data)[, -1]
 
 # Response vector
-y <- acs_5_yearly_data$crime_rate
+y <- acs_5_yearly_data$crime_rate_sqrt
 
 # LASSO with cross-validation
 lasso_model <- cv.glmnet(
@@ -683,13 +686,12 @@ metrics_tbl %>%
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
-modeling_vars <- c("crime_rate_sqrt", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2", "log_per_capita_alc_taxes", "per_capita_migration"
-)
+modeling_vars <- c("crime_rate_sqrt", "log_officers", "median_household_income_acs5",
+                   "pct_lessthan_5kincome", "pct_highschool_or_greater", "log_pct_non_white",
+                   "log_persons_per_m2", "log_per_capita_alc_taxes", "per_capita_migration")
 
 # difference across all of the data, add in a _diff to the end of the names too
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
-  mutate(crime_rate_sqrt = sqrt(crime_rate))|>
   group_by(county)|>
   summarise(across(all_of(modeling_vars), ~ (.x[post_covid == 1] - .x[post_covid == 0]),
                    .names = "{.col}_diff"))
@@ -846,17 +848,17 @@ as.matrix(coef(best_model))|>
 \[6\] Minnesota Department of Revenue Sales and Use Tax Statistics for Liquor Sales and 2.5% Tax by County\
 <https://www.revenue.state.mn.us/sales-and-use-tax-statistics-and-annual-reports>
 
-\[7\] Law Enforcement on Tribal Land
+\[7\] Law Enforcement on Tribal Land\
 <https://www.fbi.gov/investigate/violent-crime/indian-country-crime>
 
-\[8\] Substance Abuse and Mental Health Services Administration. (2025). 
-Key substance use and mental health indicators in the United States: 
-Results from the 2024 National Survey on Drug Use and Health 
-(HHS Publication No.PEP25-07-007, NSDUH Series H-60). 
-Center for Behavioral Health Statistics and Quality, 
-Substance Abuse and Mental Health Services Administration. 
+\[8\] Substance Abuse and Mental Health Services Administration. (2025). \
+Key substance use and mental health indicators in the United States: \
+Results from the 2024 National Survey on Drug Use and Health \
+(HHS Publication No.PEP25-07-007, NSDUH Series H-60). \
+Center for Behavioral Health Statistics and Quality, \
+Substance Abuse and Mental Health Services Administration. \
 <https://www.samhsa.gov/data/sites/default/files/reports/rpt56287/2024-nsduh-annual-national-report.pdf>
 
-\[9\] Minnesota Department of Health: Alcohol Use Among Youth in Minnesota Report
+\[9\] Minnesota Department of Health: Alcohol Use Among Youth in Minnesota Report\
 <https://www.health.state.mn.us/communities/alcohol/documents/youthalcoholuse.pdf>
 :::
