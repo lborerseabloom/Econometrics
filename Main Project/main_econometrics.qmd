@@ -41,12 +41,7 @@ alc_data <- readRDS("../data/alc_data.rds")
 ```{=html}
 <!--
 # PAPER TODOs
-#    Conclusions
 #    Cannon Comments:
-#       lasso interactions between everything
-#       modeling: fix auto/spatial correlation 
-#           fix interpretation of results and conclusions once models are valid
-#               give the interpretation of the actual signifigant estimates as well
 #       abstract section(can change around ASA abstract)
 -->
 ```
