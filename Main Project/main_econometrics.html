@@ -55,6 +55,7 @@ ul.task-list li input[type="checkbox"] {
 # PAPER TODOs
 # Abstract refinement
 # Citation fixes
+# ensure modeling interpretation is correct 
 -->
 <div style="text-align: center; font-size: 21pt;">
 <p><strong>Minnesota Crime: Patterns Over Time and Across COVID</strong></p>
@@ -66,13 +67,13 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="abstract" class="level3">
 <h3 class="anchored" data-anchor-id="abstract">Abstract</h3>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In this paper a 1998 study examining the sociological factors which impact crime across Minnesota counties is revisited. This studies original parameters and data are analyzed from not only 1998 to the present but across two 5 year periods before and after COVID. A clear spike in crime during COVID has been noted in previous literature and an examination of changes in traditional sociological predictors across COVID as well as from 1998 to present day is conducted. This study uses the classic analysis techniques used in the original study such as correlation analysis as well as OLS regression combined with LASSO regression and structural break tests to determine how the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In this paper a 1998 study examining the sociological factors which impact crime across Minnesota counties is revisited. This study’s original parameters and data are analyzed from not only 1998 to the present but across two 5 year periods before and after COVID. A clear spike in crime during COVID has been noted in previous literature and an examination of changes in traditional sociological predictors across COVID as well as from 1998 to present day is conducted. The current study uses the classic analysis techniques used in the original study such as correlation analysis as well as OLS regression combined with LASSO regression and structural break tests to determine how the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Initially as observed in previous literature a clear shift in crime during crime is noted during COVID. Additionally, many significant correlations between classic predictors and crime as well as shifts in their relationships over covid are seen in graphs. Once these relationships are modeled with OLS however, all of the interaction and effect of COVID on crime becomes insignificant and just a few of the original predictors are left with any predictive power. These variables do showcase some key changes from the original study and a shift in relationships from 1998. One of the key findings being the added indicator variable for if a county contains a reservation was added and it’s main effect as well as interaction with net migration into a county were found to be significant and meaningful through the process. Additionally other classic predictors of crime also remained significant such as median household income and population density.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; These findings showcase a lack of key changes in crime across Minnesotan counties during COVID, but also represent a shift in crimes predictors from the original 1998 study. The addition of the reservations indicator variable and it’s interaction also add to the previous study’s findings on factors impacting crime.</p>
 </section>
 <section id="introduction" class="level3">
 <h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In 1998 J. Mark Norman and Donald E. Arwood [1] published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota” describing how the many different sociological measures of a society’s organization and control affect the crime rates in a community. These factors were measured across Minnesota counties and included factors such as education, wages, population density, and police presence. Recently, beginning during early 2020 the COVID-19 pandemic changed many factors of our society and disrupted many dimensions of social life. As discussed by Boman and Gallupe in 2020 [3] one of these many impacts was on crime rates, particularly in relation to the more serious violent crimes analyzed in Norman and Arwood’s 1998 study [1]. This raises an important question: Across Minnesota counties, how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In 1998 J. Mark Norman and Donald E. Arwood [1] published a paper titled “A Social Disorganization Theory of County Crime Rates in Minnesota” describing how the many different sociological measures of a society’s organization and control affect the crime rates in a community. These factors were measured across Minnesota counties and included factors such as education, wages, population density, and police presence. Recently, beginning during early 2020, the COVID-19 pandemic changed many factors of our society and disrupted many dimensions of social life. As discussed by Boman and Gallupe in 2020 [3] one of these many impacts was on crime rates, particularly in relation to the more serious violent crimes analyzed in Norman and Arwood’s 1998 study [1]. This raises an important question: Across Minnesota counties, how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The main goal of this research is to build on Norman and Arwood’s 1998 study, by not only redoing the analysis with recent data but also looking at how these relationships have changed due to the COVID-19 pandemic. With crime and its prevention being such a large part of our world, and COVID changing many key parts of our society, it is important to reevaluate how typical sociological factors believed to relate to crime could have shifted during the COVID-19 pandemic. The state of these relationships today is also important in the future prediction/prevention of crime particularly for regulations on a county or state level.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To investigate this question, the study will compare crime counts from the FBI’s Crime Data Explorer with demographic and socioeconomic indicators drawn from the U.S. Census five-year county-level estimates. The analysis will include all 87 Minnesota counties and will operationalize crime rates as the number of part I index offenses (homicide, burglary, robbery, aggravated assault, rape, larceny, motor vehicle theft, and arson) per county, normalized by population. This definition of crime aligns with Norman and Arwood’s earlier work [1] while also building on the more serious offenses that Boman and Gallupe (2020) [3] identified as trending upward during the COVID-19 pandemic. Differences in crime rates, averaged across the five-year periods before and after the onset of the pandemic, will be examined to assess whether structural changes occurred. These differences will be evaluated through statistical modeling of both the pre and post-pandemic county-level data, as well as models estimating changes over time.</p>
 </section>
@@ -217,7 +218,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Above, a brief look at the monthly/yearly plot of homicides over time shows the issues in the data which are present across all of the FBI’s monthly crime data. The most obvious of these are the December peaks as many police departments report the whole year of crime in December. This lasted from 1998 to 2013 when the FBI again changed how it receives and collects records. James and Logan’s 2008 report [2] details many of the previous shifts in crime data collection and reporting as well. However, grouping the crime data into years removes the month to month reporting problems. It will allow for more direct comparison to the Census estimates.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Alcohol sales tax information was retrieved from the Minnesota Department of Revenue’s website. While this data is lacking some documentation, a general overview of collection and reporting is available at the Minnesota Department of Revenue’s website [6]. The two main inaccuracies cited are that as the gross sales data is not used in calculating taxes it is under less scrutiny than other data and accuracy cannot be guaranteed, and that there are potential errors in location reporting for business with more than one location. For the first issue, this study is using the taxes collected on liquor sales which are closely examined for accuracy, additionally while any incorrect location reporting could affect the results directly it is stated to be only a negligible number of businesses.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue’s data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers as can be seen below.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Using the liquor gross receipts tax (at 2.5%) information provided from the years 2015-2019 a pre COVID 5 year average was obtained. The Minnesota Department of Revenue’s data for 2024, however, had not yet been released so a value for 2024 was obtained by averaging the slopes between the 2010-2019 and 2022-2023 years of unadjusted dollars where the trend appears fairly continuous and then adding this to the 2023 value. This approach is more appropriate than other methods of imputation given the clear and continuous trend in the data and another more standard method would be heavily impacted by the COVID outliers as can be seen below.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -227,7 +228,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; With this data now organized and graphed above, the clear positive trend in the revenue from alcohol sales taxes can now be seen. The most notable feature of this plot being the massive dip in 2020 and recovery to the trend in 2021. These trends differ from the common narrative seen in studies such as the 2024 National Survey on Drug Use and Health [8] and the Minnesota Department of Health [9]. These reports suggest that alcohol use by adults and minors has decreased or stayed the same in the past years and had a slight uptick during COVID. This goes almost opposite to the revenue from taxes on alcohol collected by the state which seems counterintuitive and could suggest that Norman and Arwood’s use of alcohol taxes as a proxy for drinking rates is a flawed measure.<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; With this data now organized and graphed above, the clear positive trend in the revenue from alcohol sales taxes can now be seen up until COVID. This then dips sharply during COVID and sees a clear structural shift afterwards. These trends , at least after COVID, follow the common narrative seen in studies such as the 2024 National Survey on Drug Use and Health [8] and the Minnesota Department of Health [9]. These reports suggest that alcohol use by adults and minors has decreased or stayed the same in the past years and had a slight uptick during COVID. The drop in sales during COVID could however represent a problem with taxes as a proxy as all in-person stores saw declines in consumerism during the pandemic.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias [5]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases, generated from who is sampled and who chooses to respond to a poll, will have to be addressed in the final interpretation of the results as a potential source of bias.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes collected from the FBI and dividing it by the total population estimate from the census. The available demographic variables (officers per 1000 people, median household income, the percent of households with less than $5000 income, the percent of people with a high school or greater degree, the percent of children missing parents, the percent non white, the percent young males, persons per household, persons per m<sup>2</sup>, and per capita net migration) used in Norman and Arwood’s 1998 study [1] were then calculated using a variety of census estimates.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The final data being used for modeling contains two rows for each of the 87 Minnesota counties representing the pre and post COVID periods with 5 year average estimates for 2015-2019 and 2020-2024 respectively. The variables used in Norman and Arwood’s 1998 study [1] will be tested in their effects on crime rates before and after to address the question of: how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
@@ -323,14 +324,6 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">0.01399</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">per_capita_alc_taxes</td>
-<td style="text-align: left;">12.86338</td>
-<td style="text-align: left;">15.01273</td>
-<td style="text-align: left;">5.85486</td>
-<td style="text-align: left;">6.70841</td>
-<td style="text-align: left;">0.02564</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">per_capita_migration</td>
 <td style="text-align: left;">0.06175</td>
 <td style="text-align: left;">0.05681</td>
@@ -338,7 +331,7 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">0.01665</td>
 <td style="text-align: left;">0.05592</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">pct_young_males</td>
 <td style="text-align: left;">3.20551</td>
 <td style="text-align: left;">3.36270</td>
@@ -346,7 +339,7 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">0.58480</td>
 <td style="text-align: left;">0.07759</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">pct_children_missing_parents</td>
 <td style="text-align: left;">32.89281</td>
 <td style="text-align: left;">32.57961</td>
@@ -354,7 +347,7 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">2.63064</td>
 <td style="text-align: left;">0.38376</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">officers</td>
 <td style="text-align: left;">2.79728</td>
 <td style="text-align: left;">2.71555</td>
@@ -362,13 +355,21 @@ ul.task-list li input[type="checkbox"] {
 <td style="text-align: left;">0.65202</td>
 <td style="text-align: left;">0.55471</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">persons_per_household</td>
 <td style="text-align: left;">2.45877</td>
 <td style="text-align: left;">2.45170</td>
 <td style="text-align: left;">0.20076</td>
 <td style="text-align: left;">0.16975</td>
 <td style="text-align: left;">0.80233</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">per_capita_alc_taxes</td>
+<td style="text-align: left;">16.41118</td>
+<td style="text-align: left;">16.32717</td>
+<td style="text-align: left;">7.45967</td>
+<td style="text-align: left;">7.28797</td>
+<td style="text-align: left;">0.94019</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">persons_per_m2</td>
@@ -382,7 +383,7 @@ ul.task-list li input[type="checkbox"] {
 </table>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; An examination of the predictive variables used in [1] indicate no statistically significant changes at the 5% level between the pre and post-COVID periods for the per capita migration, percent young males, percent of children missing parents, officers per 1,000 residents, persons per household, and persons per square meter. However, across the rest of the variables we see relatively larger and more significant changes particularly across crime rates, income, education, heterogeneity, and revenue from alcohol taxes.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; An examination of the predictive variables used in [1] indicate no statistically significant changes at the 5% level between the pre and post-COVID periods for the per capita migration, percent young males, percent of children missing parents, officers per 1,000 residents, persons per household, per capita alcohol taxes, and persons per square meter. However, across the rest of the variables we see relatively larger and more significant changes particularly across crime rates, income, education, heterogeneity, and revenue from alcohol taxes.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-striped caption-top table-sm small" data-quarto-postprocess="true">
@@ -412,8 +413,8 @@ ul.task-list li input[type="checkbox"] {
 </tr>
 <tr class="even">
 <td style="text-align: left;">per_capita_alc_taxes</td>
-<td style="text-align: right;">0.2595998</td>
-<td style="text-align: right;">0.0005418</td>
+<td style="text-align: right;">0.3032593</td>
+<td style="text-align: right;">0.0000475</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">persons_per_household</td>
@@ -482,63 +483,71 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">reservations:per_capita_migration</td>
-<td style="text-align: right;">0.4925860</td>
+<td style="text-align: right;">0.4735882</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">0.3330639</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">log_per_capita_alc_taxes:per_capita_migration</td>
-<td style="text-align: right;">0.0165439</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">log_persons_per_m2</td>
-<td style="text-align: right;">0.0098387</td>
+<td style="text-align: right;">0.3417738</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">post_covid:per_capita_migration</td>
-<td style="text-align: right;">0.0032192</td>
+<td style="text-align: right;">0.0222235</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">log_persons_per_m2</td>
+<td style="text-align: right;">0.0113038</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">log_per_capita_alc_taxes:per_capita_migration</td>
+<td style="text-align: right;">0.0056033</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">officers:pct_young_males</td>
-<td style="text-align: right;">0.0014731</td>
+<td style="text-align: right;">0.0015277</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">persons_per_household:log_persons_per_m2</td>
-<td style="text-align: right;">0.0007607</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">pct_lessthan_5kincome:log_persons_per_m2</td>
-<td style="text-align: right;">0.0005637</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">per_capita_alc_taxes:pct_lessthan_5kincome</td>
-<td style="text-align: right;">0.0003237</td>
+<td style="text-align: right;">0.0005672</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">pct_young_males:log_persons_per_m2</td>
-<td style="text-align: right;">0.0002625</td>
+<td style="text-align: left;">persons_per_household:log_persons_per_m2</td>
+<td style="text-align: right;">0.0005175</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">pct_young_males:log_persons_per_m2</td>
+<td style="text-align: right;">0.0003083</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">per_capita_alc_taxes:pct_lessthan_5kincome</td>
+<td style="text-align: right;">0.0002772</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">officers:log_officers</td>
+<td style="text-align: right;">0.0001589</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">pct_children_missing_parents:log_pct_non_white</td>
-<td style="text-align: right;">0.0001415</td>
+<td style="text-align: right;">0.0001438</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pct_children_missing_parents:reservations</td>
+<td style="text-align: right;">0.0001105</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">per_capita_alc_taxes:log_officers</td>
-<td style="text-align: right;">-0.0004078</td>
+<td style="text-align: right;">-0.0004148</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">post_covid:reservations</td>
-<td style="text-align: right;">-0.0025220</td>
+<td style="text-align: right;">-0.0017824</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">officers:persons_per_m2</td>
-<td style="text-align: right;">-2.4465626</td>
+<td style="text-align: right;">-2.2234808</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">persons_per_household:persons_per_m2</td>
-<td style="text-align: right;">-4.0401647</td>
+<td style="text-align: right;">-4.4938320</td>
 </tr>
 </tbody>
 </table>
@@ -587,52 +596,52 @@ ul.task-list li input[type="checkbox"] {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">0.3657111</td>
-<td style="text-align: right;">0.029</td>
-<td style="text-align: right;">0.039</td>
+<td style="text-align: right;">0.3460412</td>
+<td style="text-align: right;">0.031</td>
+<td style="text-align: right;">0.046</td>
 <td style="text-align: right;">0.000</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">median_household_income_acs5</td>
-<td style="text-align: right;">-0.0000014</td>
+<td style="text-align: right;">-0.0000013</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">log_persons_per_m2</td>
-<td style="text-align: right;">0.0212013</td>
+<td style="text-align: right;">0.0204319</td>
 <td style="text-align: right;">0.002</td>
 <td style="text-align: right;">0.002</td>
 <td style="text-align: right;">0.000</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">reservations:per_capita_migration</td>
-<td style="text-align: right;">1.2924971</td>
+<td style="text-align: right;">1.2950588</td>
 <td style="text-align: right;">0.251</td>
-<td style="text-align: right;">0.277</td>
+<td style="text-align: right;">0.274</td>
 <td style="text-align: right;">0.000</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">reservations</td>
-<td style="text-align: right;">-0.0564173</td>
+<td style="text-align: right;">-0.0571894</td>
 <td style="text-align: right;">0.015</td>
 <td style="text-align: right;">0.017</td>
 <td style="text-align: right;">0.001</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">log_per_capita_alc_taxes</td>
-<td style="text-align: right;">0.0198882</td>
+<td style="text-align: left;">log_pct_non_white</td>
+<td style="text-align: right;">0.0089669</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.003</td>
 <td style="text-align: right;">0.005</td>
-<td style="text-align: right;">0.008</td>
-<td style="text-align: right;">0.009</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">log_pct_non_white</td>
-<td style="text-align: right;">0.0078947</td>
-<td style="text-align: right;">0.003</td>
-<td style="text-align: right;">0.003</td>
-<td style="text-align: right;">0.013</td>
+<td style="text-align: left;">log_per_capita_alc_taxes</td>
+<td style="text-align: right;">0.0197153</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.008</td>
+<td style="text-align: right;">0.012</td>
 </tr>
 </tbody>
 </table>
@@ -654,15 +663,15 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">0.663</td>
-<td style="text-align: right;">0.651</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">0.65</td>
 <td style="text-align: right;">0.021</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This model explains approximately 66.3% of the variation in county-level crime rates and achieves a root mean squared error (RMSE) that is roughly half the standard deviation of observed crime rates, indicating a strong overall fit. Also, the adjusted R<sup>2</sup> remains close to the unadjusted R<sup>2</sup>, suggesting that the model is not overfitting and that the included predictors contribute meaningfully to explaining variation in crime rates.<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This model explains approximately 66.2% of the variation in county-level crime rates and achieves a root mean squared error (RMSE) that is roughly half the standard deviation of observed crime rates, indicating a strong overall fit. Also, the adjusted R<sup>2</sup> remains close to the unadjusted R<sup>2</sup>, suggesting that the model is not overfitting and that the included predictors contribute meaningfully to explaining variation in crime rates.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; As seen below, the residuals are approximately centered at 0 with no obvious outliers or patterns further demonstrating the validity of an OLS approach to this data.<br>
 </p>
 <div class="cell">
@@ -686,11 +695,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The linear model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. As in Norman and Arwood’s previous work, only a small subset of variables remain statistically significant at conventional levels, as well as all interaction terms with the post-COVID indicator not being statistically distinguishable from zero.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The first notable finding concerns median household income, which exhibits a negative relationship with per-capita crime rates. The coefficient on median_household_income_acs5 (-0.0000014) implies that a $10,000 increase in median household income is associated with a reduction of approximately 0.2 crimes per 1,000 residents on average, holding all else constant. While modest, this effect is precisely estimated and highly significant, suggesting that higher-income counties consistently experience lower crime rates, controlling for density, demographics, and other covariates. This aligns with Norman and Arwood’s earlier findings that economic deprivation is associated with higher crime, supporting the conclusion that economic conditions remain a meaningful determinant.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Population density emerges as one of the most stable and substantively meaningful predictors in the model. The log of persons per square meter is positive and highly significant (0.0212013), implying for every additional person per square meter you would expect an average increase of .45 crimes per 1000 people holding all else constant. This finding strengthens the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The reservation indicator and its interaction with per-capita net migration are both highly significant. Counties with a reservation have slightly lower baseline crime rates (−0.056 on the square root scale), but the reservation-migration interaction is substantially large (1.29). This implies that a for every additional migration per 1000 people into a reservation county is associated with roughly 0.00129 additional violent crimes per resident, whereas migration has negligible impact in non-reservation counties. This interaction is robust to transformations, outlier removal, and cluster-robust inference, demonstrating that migration effects on crime are context-dependent and particularly pronounced in counties containing reservations.This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason for this can be seen in the FBI’s handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the ‘serious’ offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The log of the percent of non-white residents is positive but only marginally significant (0.0078947); a 10% increase in the percent non-white population is associated with approximately 0.0006 additional crimes per 1,000 residents. This suggests that racial heterogeneity, while correlated with crime in simpler models, does not independently explain variation once density, income, and other controls are included. As in stated prior work, this relationship likely reflects broader geographic and socioeconomic clustering rather than a direct causal mechanism.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Similarly, per-capita alcohol tax revenue (log_per_capita_alc_taxes) is positive but modest (0.0198882): a 10% increase in per-capita alcohol tax revenue is associated with approximately 0.004 additional crimes per 1,000 residents. Educational attainment (percentage with a high school degree or greater) is not significant, suggesting that education primarily proxies for density and urbanization rather than exerting a direct effect on crime.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The first notable finding concerns median household income, which exhibits a negative relationship with per-capita crime rates. The coefficient on median_household_income_acs5 (-0.0000013) implies that a $10,000 increase in median household income is associated with a reduction of approximately 0.169 crimes per 1,000 residents on average, holding all else constant. While modest, this effect is precisely estimated and highly significant, suggesting that higher-income counties consistently experience lower crime rates, controlling for density, demographics, and other covariates. This aligns with Norman and Arwood’s earlier findings that economic deprivation is associated with higher crime, supporting the conclusion that economic conditions remain a meaningful determinant.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Population density emerges as a stable predictor but modest in it’s effects on crime. The log of persons per square meter is positive and highly significant (0.0204319), implying for every additional 10% increase in population density you would expect an average increase of .0042 crimes per 1000 people holding all else constant. This finding strengthens the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The reservation indicator and its interaction with per-capita net migration are both highly significant. Counties with a reservation have slightly lower baseline crime rates (−0.057) on the square root scale), but the reservation-migration interaction is substantially large (1.29). This implies that a for every additional migration per 1000 people into a reservation county is associated with roughly 0.00129 additional violent crimes per resident, whereas migration has negligible impact in non-reservation counties. This interaction is robust to transformations, outlier removal, and cluster-robust inference, demonstrating that migration effects on crime are context-dependent and particularly pronounced in counties containing reservations.This stability suggests that the observed relationship reflects long-standing structural and institutional factors and not pandemic-related disruptions. Another potential reason for this can be seen in the FBI’s handling of crimes committed on tribal land [7]. The majority of crimes used in the operationalization of crime rates are included under the ‘serious’ offenses, which if committed on tribal land, are automatically handled by the FBI bypassing the potential source of under reporting from the police to the FBI.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The log of the percent of non-white residents is positive (0.009) but with only a very marginal effect; a 10% increase in the percent non-white population is associated with approximately 0.0008 additional crimes per 1,000 residents. This suggests that racial heterogeneity, while correlated with crime in simpler models, does not independently explain variation once density, income, and other controls are included. As in stated prior work, this relationship likely reflects broader geographic and socioeconomic clustering rather than a direct causal mechanism.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Similarly, per-capita alcohol tax revenue (log_per_capita_alc_taxes) is positive but modest (0.0197153): a 10% increase in per-capita alcohol tax revenue is associated with approximately 0.004 additional crimes per 1,000 residents. Educational attainment (percentage with a high school degree or greater) is not significant, suggesting that education primarily proxies for density and urbanization rather than exerting a direct effect on crime.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Variables capturing large city status, police presence, and migration alone are not significant after controls are included. Their estimated impacts in original units are close to zero, further highlighting that migration effects in non-reservation counties are minimal. The inclusion of the reservation × migration interaction explains most of the predictive variation previously attributed to migration, underscoring the importance of context-dependent relationships for these variables.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Finally, the post-COVID indicator itself is highly statistically insignificant and removed from the model, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties. This interpretation is again supported by structural break tests below, which fail to detect meaningful parameter shifts over time at again highly insignificant levels.<br>
 </p>
@@ -700,14 +709,14 @@ ul.task-list li input[type="checkbox"] {
     M-fluctuation test
 
 data:  total_model
-f(efp) = 1.2671, p-value = 0.4448</code></pre>
+f(efp) = 1.2684, p-value = 0.4426</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     OLS-based CUSUM test
 
 data:  cumsum_process
-S0 = 0.672, p-value = 0.7572</code></pre>
+S0 = 0.78581, p-value = 0.5674</code></pre>
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A model is now fit using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates across COVID. Using this approach, the only variables found to have a statistically significant relationship at the &lt;.05 level on the change in crime rates is change in the population density measured in m<sup>2</sup> as well as the change in the proportion of young males in the population. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. The borderline significance of young males in this case seems to be a type 1 error, especially due to its high lack of significance in other models. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.<br>
@@ -772,7 +781,7 @@ S0 = 0.672, p-value = 0.7572</code></pre>
 </table>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The differenced LASSO model also only selects the population density measure and proportion of young males, again with a negative coefficients showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for young males remains much lower than for population density further showcasiung its potential invalidity as a predictor of crime.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The differenced LASSO model also only selects the population density measure, proportion of young males, and percent non-white. The percent non-white variable remains relatively insignificant (p=.185) in the OLS regression. The two other variables are estimated again with a negative coefficients showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for young males remains much lower than for population density further showcasing its potential invalidity as a predictor of crime.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-striped caption-top table-sm small" data-quarto-postprocess="true">
@@ -785,16 +794,20 @@ S0 = 0.672, p-value = 0.7572</code></pre>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">pct_young_males_diff</td>
-<td style="text-align: right;">-0.0034848</td>
+<td style="text-align: left;">log_pct_non_white_diff</td>
+<td style="text-align: right;">0.0027588</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">-0.0131642</td>
+<td style="text-align: left;">pct_young_males_diff</td>
+<td style="text-align: right;">-0.0045553</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: right;">-0.0147097</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">log_persons_per_m2_diff</td>
-<td style="text-align: right;">-0.0594881</td>
+<td style="text-align: right;">-0.0734665</td>
 </tr>
 </tbody>
 </table>
