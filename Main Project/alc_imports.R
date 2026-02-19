@@ -63,24 +63,24 @@ alc_tax <- rename(alc_tax,
       alc_taxes
     )
   ) |>
-  ungroup() |>
-  select(-slope, -avg_slope)
+  ungroup()|>
+  select(-slope, -avg_slope)|>
+  mutate(adj_alc_taxes = priceR::afi(alc_taxes, year, "US", to_date = 2024))
 
-#alc alc_taxes and sales are almost perfectly correlated
 alc_tax|>
   group_by(year)|>
-  summarise(sales = sum(sales))|>
-  ggplot(aes(x = year, y=sales))+
+  summarise(adj_alc_taxes = sum(adj_alc_taxes))|>
+  ggplot(aes(x = year, y=adj_alc_taxes))+
   geom_point()
 
 alc_tax|>
   group_by(year)|>
-  summarise(alc_taxes = sum(alc_taxes))|>
-  ggplot(aes(x = year, y=alc_taxes))+
+  summarise(adj_alc_taxes = sum(adj_alc_taxes))|>
+  ggplot(aes(x = year, y=adj_alc_taxes))+
   geom_point()
 
 # drop sales before saving to pass on up the line
-alc_tax <- alc_tax[,c(1,2,4)]
+alc_tax <- alc_tax[,c(1,2,4,6)]
 
 saveRDS(alc_tax, "data/alc_data.rds")
 

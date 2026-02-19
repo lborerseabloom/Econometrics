@@ -133,7 +133,7 @@ acs_5_yearly_data <- crime_data |>
   # add rolling averages of crime and alc stats (last 4 years incl. current)
   # this converts crime stats to the same 5 yr rolling avg that is used by acs5
   arrange(county, year) |>
-  mutate(across(c(alc_taxes, arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
+  mutate(across(c(alc_taxes, adj_alc_taxes, arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ 
                   slider::slide_dbl(.x, mean, .before = 4, .complete = TRUE))
   ) |>
   
@@ -171,7 +171,7 @@ acs_5_yearly_data <- crime_data |>
          
          persons_per_m2 = total_population_acs5/area_m2,
          
-         per_capita_alc_taxes = alc_taxes/total_population_acs5,
+         per_capita_alc_taxes = adj_alc_taxes/total_population_acs5,
          
          per_capita_migration = (from_diff_county_same_state_acs5+from_diff_state_acs5+from_abroad_acs5)/total_population_acs5)|>
   
