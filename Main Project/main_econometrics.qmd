@@ -41,8 +41,6 @@ alc_data <- readRDS("../data/alc_data.rds")
 ```{=html}
 <!--
 # PAPER TODOs
-# Abstract refinement
-# Citation fixes
 # ensure modeling interpretation is correct 
 -->
 ```
@@ -63,9 +61,9 @@ Feb x 2026
 
 ### Abstract
 
-      In this paper a 1998 study examining the sociological factors which impact crime across Minnesota counties is revisited. This study's original parameters and data are analyzed from not only 1998 to the present but across two 5 year periods before and after COVID. A clear spike in crime during COVID has been noted in previous literature and an examination of changes in traditional sociological predictors across COVID as well as from 1998 to present day is conducted. The current study uses the classic analysis techniques used in the original study such as correlation analysis as well as OLS regression combined with LASSO regression and structural break tests to determine how the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?\
-      Initially as observed in previous literature a clear shift in crime during crime is noted during COVID. Additionally, many significant correlations between classic predictors and crime as well as shifts in their relationships over covid are seen in graphs. Once these relationships are modeled with OLS however, all of the interaction and effect of COVID on crime becomes insignificant and just a few of the original predictors are left with any predictive power. These variables do showcase some key changes from the original study and a shift in relationships from 1998. One of the key findings being the added indicator variable for if a county contains a reservation was added and it's main effect as well as interaction with net migration into a county were found to be significant and meaningful through the process. Additionally other classic predictors of crime also remained significant such as median household income and population density.\
-      These findings showcase a lack of key changes in crime across Minnesotan counties during COVID, but also represent a shift in crimes predictors from the original 1998 study. The addition of the reservations indicator variable and it's interaction also add to the previous study's findings on factors impacting crime.
+      In this paper, a 1998 study examining the sociological factors that impact crime across Minnesota counties is revisited. The original study’s parameters and data are extended from 1998 to the present and analyzed across two five-year periods before and after the COVID-19 pandemic. A clear spike in crime during COVID has been noted in previous literature, and this study examines whether traditional sociological predictors of crime changed both during COVID and over the longer period from 1998 to the present. The analysis employs the same core techniques used in the original study, including correlation analysis and OLS regression, with additional LASSO regression and structural break tests, to assess how the relationships between crime and its determinants evolved over time. \
+      Consistent with previous literature, a clear increase in crime during the COVID period is initially observed. Additionally, graphical analysis reveals several significant correlations between classic predictors and crime, as well as apparent shifts in these relationships during COVID. However, once these relationships are formally modeled using OLS regression, the interaction terms and direct effects associated with COVID become statistically insignificant, leaving only a small subset of the original predictors with meaningful explanatory power. While these remaining variables reflect some changes from the original 1998 study, they also indicate continuity in key determinants of crime. Notably, the inclusion of an indicator variable for counties containing tribal reservations emerges as a meaningful addition, with both its main effect and its interaction with net migration showing statistical significance. Median household income and population density also remain significant predictors of crime.
+Overall, these findings suggest that while crime levels increased during the COVID period, the underlying sociological relationships driving crime across Minnesota counties remained largely stable. At the same time, the results highlight an evolution in the importance of certain predictors since the 1998 study, particularly the role of reservations and migration, which expand upon the original findings regarding the factors influencing county-level crime.\
 
 ### Introduction
 
@@ -1019,24 +1017,18 @@ as.matrix(coef(best_model))|>
 \[5\] U.S. Census Bureau. (2025, August 19). *Comparing ACS Data*.\
 <https://www.census.gov/programs-surveys/acs/guidance/comparing-acs-data.html>
 
-\[6\] Minnesota Department of Revenue Sales and Use Tax Statistics for Liquor Sales and 2.5% Tax by County\
+\[6\] Minnesota Department of Revenue. *Sales and Use Tax Statistics for Liquor Sales and 2.5% Tax by County.*  
 <https://www.revenue.state.mn.us/sales-and-use-tax-statistics-and-annual-reports>
 
-\[7\] Law Enforcement on Tribal Land\
+\[7\] Federal Bureau of Investigation. *Law Enforcement on Tribal Land.*  
 <https://www.fbi.gov/investigate/violent-crime/indian-country-crime>
 
-\[8\] Substance Abuse and Mental Health Services Administration. (2025). \
-Key substance use and mental health indicators in the United States: \
-Results from the 2024 National Survey on Drug Use and Health \
-(HHS Publication No.PEP25-07-007, NSDUH Series H-60). \
-Center for Behavioral Health Statistics and Quality, \
-Substance Abuse and Mental Health Services Administration. \
+\[8\] Substance Abuse and Mental Health Services Administration. (2025). *Key substance use and mental health indicators in the United States: Results from the 2024 National Survey on Drug Use and Health* (HHS Publication No. PEP25-07-007; NSDUH Series H-60). Center for Behavioral Health Statistics and Quality.  
 <https://www.samhsa.gov/data/sites/default/files/reports/rpt56287/2024-nsduh-annual-national-report.pdf>
 
-\[9\] Minnesota Department of Health: Alcohol Use Among Youth in Minnesota Report\
+\[9\] Minnesota Department of Health. *Alcohol Use Among Youth in Minnesota.*  
 <https://www.health.state.mn.us/communities/alcohol/documents/youthalcoholuse.pdf>
 
-\[10\] WHEN SHOULD YOU ADJUST STANDARD ERRORS FOR CLUSTERING? \
-© 2017 by Alberto Abadie, Susan Athey, Guido W. Imbens, and Jeffrey Wooldridge. \
+\[10\] Abadie, A., Athey, S., Imbens, G. W., & Wooldridge, J. (2017). *When should you adjust standard errors for clustering?* National Bureau of Economic Research Working Paper No. 24003.  
 <https://www.nber.org/system/files/working_papers/w24003/w24003.pdf>
 :::
