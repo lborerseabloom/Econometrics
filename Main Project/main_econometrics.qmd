@@ -44,12 +44,8 @@ alc_data <- readRDS("../data/alc_data.rds")
 # Tyler comments:
 #     consider disscussing relevance of current ICE activity in intro/conclsions
 #     fix in line citations 
-#     better explain alcohol imputation method
-#     explain outline and centroids better on mn map
-#     write out formula for models being fit
-#     statistical test for normality in resids vs fits
-#     explain hypotheses being tested in cumsum and chow test 
-#     formally define LASSO regression with more depth
+
+# Do I need to better explain alcohol imputation method
 -->
 ```
 
@@ -290,6 +286,7 @@ acs_5_yearly_data|>
       Looking at the general distribution of crime rates post COVID we see a approximately normal distribution after a square root transformation, this transformation will be used through the rest of the modeling process. However the pre COVID distribution remains slightly left skewed but not dramatically. The right tails of both pre and post COVID distributions hold the largest counties suggesting there could be a relationship between population density and crime rates. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential relationship between population density and crime.
 
 ```{r crime_and_pop_mapping}
+#| warning: false
 
 # Base map for year 2024
 data_2023 <- mapping_yearly_data |> 
@@ -300,37 +297,8 @@ city_centroids <- data_2023 |>
   filter(top_cities == 1) |>
   st_centroid()
 
-# Plot A — population
-a <- ggplot(data_2023) +
-  geom_sf(aes(fill = total_population_acs5), color = "white") +
-  # black border for reservations
-  geom_sf(
-    data = subset(data_2023, reservations == 1),
-    fill = NA,
-    color = "black",
-    size = .75
-  ) +
-  # Black dot at centroid for top cities
-  geom_sf(
-    data = city_centroids,
-    color = "black", size = 1.8
-  ) +
-  scale_fill_viridis_c(
-    option = "plasma",
-    trans = "log10",
-    name = "Total Population",
-    labels = scales::label_number(scale_cut = scales::cut_short_scale())
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    legend.position = "bottom",
-    plot.margin = margin(0, 0, 0, 0)
-  )
-
 # Plot B — crime rate
-b <- ggplot(data_2023) +
+ggplot(data_2023) +
   geom_sf(aes(fill = crime_rate), color = "white") +
   geom_sf(
     data = subset(data_2023, reservations == 1),
@@ -347,24 +315,41 @@ b <- ggplot(data_2023) +
     option = "plasma",
     name = "Crime Rates"
   ) +
+  # dummy points for custom legend
+  geom_point(aes(x = 0, y = 0, shape = "Top 5 Cities", color = "Top 5 Cities"),
+             size = 4, show.legend = TRUE) +
+  geom_point(aes(x = 0, y = 0, shape = "Reservations", color = "Reservations"),
+             size = 4, show.legend = TRUE) +
+  scale_color_manual(
+    name = "",
+    values = c("Top 5 Cities" = "black", "Reservations" = "black")
+  ) +
+  scale_shape_manual(
+    name = "",
+    values = c("Top 5 Cities" = 20, "Reservations" = 0)
+  ) +
+  coord_sf(
+    # Minnesota approx bounds
+    xlim = c(-97, -90.0),  # longitudes (west to east)
+    ylim = c(43.4, 49.25)     # latitudes (south to north)
+  ) +
   theme_minimal() +
   theme(
     axis.text = element_blank(),
     axis.ticks = element_blank(),
-    legend.position = "bottom",
-    plot.margin = margin(0, 0, 0, 0)
-  )
-
-# Combine with patchwork
-a + b +
-  plot_annotation(
-    title = "Overall Population Analysis (Post COVID)",
-    subtitle = "Population by County and Yearly Trends",
-    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations"
-  )
+    legend.position = "right",
+    legend.direction = "vertical",
+    plot.margin = margin(0, 0, 0, 0),
+    plot.title = element_text(
+      hjust = 0.5,            # center the title
+      margin = margin(b = 15), # add space below the title
+      size = 16               # optional: increase title size
+    )
+  )+
+  labs(y=NULL,x=NULL, title = "Overall Crime Rates Across Minnesota (Post COVID)")
 ```
 
-      A spatial analysis of the post COVID five-year averages for crime rates and population reveals distinct geographic patterns and highlights the relationship between population and large cites with crime. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, which can be seen as a clear yellow county in the upper central portion of the crime rate map despite its lack of a high population. 
+      A spatial analysis of the post COVID five-year averages for crime rates per capita reveals distinct geographic patterns and highlights the relationship between population and large cites with crime. Higher crime rates are concentrated within major urban centers, with a noticeable decline in surrounding suburban areas. Outside of the Twin Cities region, other population hubs also exhibit above-average crime rates. One clear outlier is Beltrami County, which can be seen as a clear yellow county in the upper central portion of the crime rate map despite its lack of a high population. 
 
 #### Pre Modeling Relationship Analysis
 
@@ -507,6 +492,7 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 #### LASSO Estimation
 
       To further assess the validity of these variable selection decisions and to identify any potentially omitted predictors or interaction effects, a LASSO regression was fit using the full set of available variables and all interaction terms. This model provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike other traditional regressions, which rely on statistical significance conditional on a specified model, the LASSO model penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance. These factors make it a useful tool in variable selection, as all unimportant variables will have their coefficients set to 0 or near 0 and dropped automatically.\
+      Formally, the LASSO estimation solves a optimization problem in which the sum of squared residuals is minimized subject to an L1 penalty on the absolute values of the regression coefficients. This penalty introduces a bias–variance tradeoff by shrinking coefficient estimates toward zero in exchange for lower variance and improved predictive performance. The L1 penalty is particularly important because, unlike in ridge regression, it allows the model to select a subset of the predictors rather than merely shrinking all coefficients. The strength of the penalty parameter is chosen via cross-validation, balancing model fit against complexity. In this setting, LASSO is especially well suited for evaluating a the large number of correlated socioeconomic predictors and interaction terms, where traditional OLS estimation suffers from collinearity and overfitting.
 
 ```{r lasso_regression}
 set.seed(123)
@@ -688,6 +674,23 @@ acs_5_yearly_data |>
 #   kbl(caption = "LASSO Model Performance Metrics") |>kable_styling("striped", full_width = FALSE)
 ```
 
+      Fitting the model defined as:
+
+$$
+\begin{aligned}
+\sqrt{crime\_rate_i} &= \hat{\beta}_0
++ \hat{\beta}_1 \, median\_household\_income_i
++ \hat{\beta}_2 \, \log(persons\_per\_m^{2}_i) \\
+&\quad + \hat{\beta}_3 \, reservations_i
++ \hat{\beta}_4 \, (reservations_i \, per\_capita\_migration_i) \\
+&\quad + \hat{\beta}_5 \, \log(pct\_non\_white_i)
++ \hat{\beta}_6 \, \log(per\_capita\_alc\_taxes_i)
++ \varepsilon_i
+\end{aligned}
+$$
+
+      Produces the below results
+
 ```{r acs5_modeling}
 formula <- reformulate(modeling_vars, response = "crime_rate")
 
@@ -745,18 +748,7 @@ kbl(combined, caption = "Regression Models with Classical and Robust Standard Er
   # group_rows("Full Model", min(full_rows), max(full_rows))
 ```
 
-$$
-\sqrt{crime\_rate_i}
-=
-\hat{\beta}_0
-+ \hat{\beta}_1\,{median\_household\_income}_i
-+ \hat{\beta}_2\,\log({persons\_per\_m2}_i)
-+ \hat{\beta}_3\,{reservations}_i
-+ \hat{\beta}_4\,\bigl({reservations}_i \times {per\_capita\_migration}_i\bigr)
-+ \hat{\beta}_5\,\log({pct\_non\_white}_i)
-+ \hat{\beta}_6\,\log(per\_capita\_alc_taxes}_i)
-+ \varepsilon_i
-$$
+
 
       The above regression results reveal several robust relationships between county-level crime rates and key socioeconomic and spatial predictors. Median household income is negatively associated with crime, consistent with prior literature, while population density (measured as the log of persons per square meter), per-capita alcohol tax revenue, and the proportion of non-white residents are all positively associated with higher crime rates. Counties containing reservations exhibit significantly lower baseline crime rates on average; however, this effect is strongly moderated by net migration, as reflected in the large and highly significant interaction between reservation status and per-capita migration.\
       A large concern with county-level ACS data is the presence of both spatial and temporal autocorrelation, which can lead to downward-biased standard errors and overly generous p-values under OLS assumptions. To partially address this issue, the model is estimated using standard errors that are robust to clustering across the same counties. Both classical and clustering-robust (CR2) standard errors are reported for comparison, inference is also based on these cluster-robust estimators. Multiple clustering and heteroskedastic corrections were tried, including CR1 (Liang–Zeger), CR2, and HC. Across all three approaches, the key coefficients, particularly the reservation-by-migration interaction, remain statistically significant. As stated by Alberto Abadie et al. \[10\], clustering errors largely are overly conservative, however CR2 standard errors are still reported here, as in this case they don't impact significance of the chosen predictors heavily and provide reasonable increases in standard errors while avoiding the excessive corrections of CR3.\
@@ -795,7 +787,13 @@ kbl(model_metrics#, caption = "Model Performance Summary (R², Adjusted R², RMS
 ```{r acs5_modeling_resids_v_fits}
 plot(total_model, 1)
 ```
-      Additionally, the model also largely satisfies it's normality in the residuals assumption with the majority of residuals matching up with the normal distribution as can be seen below. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is contained to only 6 points and not enough to not impact the conclusions from this model meaningfully.\
+
+```{r acs5_modeling_resid_normality_test}
+shapiro.test(total_model$residuals)
+```
+
+
+      Additionally, as can be seen above the model also satisfies it's normality in the residuals assumption failing to reject the null hypothesis that the residuals are normally distributed at a .17 level. Furthermore, as can be seen below the majority of residuals match up with the normal distribution barring small deviations at the tails. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is contained to only 6 points and not enough to not impact the conclusions from this model meaningfully.\
 
 ```{r acs5_modeling_resid_normality}
 plot(total_model, 2)
@@ -812,7 +810,9 @@ plot(total_model, 2)
 
 #### Structural Break Tests
 
-      This interpretation is again supported by structural break tests below, which fail to detect meaningful parameter shifts over time at again highly insignificant levels. \
+        This interpretation is further supported by the structural break tests presented below, which fail to detect meaningful parameter instability over time. Two complementary tests are employed: the Chow (M-fluctuation) test and the CUSUM test. The Chow test explicitly evaluates whether the regression coefficients differ across a predefined breakpoint, in this case the onset of the COVID-19 period. It tests the null hypothesis that the relationship between crime and its explanatory variables remains constant before and after the break. The results of the Chow test fail to reject this null hypothesis, indicating no statistically significant structural change in the estimated coefficients following the onset of COVID.  
+  The CUSUM test provides a more flexible assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether the estimated parameters drift outside their confidence bounds. In the present analysis, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period.  
+  Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.
 
 ```{r chow_cum_tests}
 # Chow test using the 'post_covid' variable as the breakpoint
@@ -834,6 +834,17 @@ print(cumsum_test)
 #### Differenced Model Estimation
 
       A model is now fit using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates across COVID. Using this approach, the only variables found to have a statistically significant relationship at the <.05 level on the change in crime rates is change in the population density measured in m^2^ as well as the change in the proportion of young males in the population. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. The borderline significance of young males in this case seems to be a type 1 error, especially due to its high lack of significance in other models. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.\
+      Fitting the model of these differences defined as:
+$$
+\begin{aligned}
+\sqrt{crime\_rate\_post} - \sqrt{crime\_rate\_pre} 
+&= \hat{\beta}_0
++ \hat{\beta}_1 \, (\log(persons\_per\_m2\_post) - \log(persons\_per\_m2\_pre)) + \\
+&\quad \hat{\beta}_2 \, (pct\_young\_males\_post - pct\_young\_males\_pre) + \varepsilon
+\end{aligned}
+$$
+
+      Produces the below results
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
