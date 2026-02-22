@@ -82,13 +82,8 @@ window.Quarto = {
 
 <!--
 # PAPER TODOs
-# Tyler comments:
-#     consider disscussing relevance of current ICE activity in intro/conclsions
-#     fix in line citations 
-#     write out formula for models being fit
-
-# How to latex in qmd
-# Do I need to better explain alcohol imputation method
+# How to disscuss the relevance of current ICE activity in intro/conclsions
+# How to better explain alcohol imputation method
 -->
 <div style="text-align: center; font-size: 21pt;">
 <p><strong>Minnesota Crime: Patterns Over Time and Across COVID</strong></p>
@@ -113,7 +108,7 @@ window.Quarto = {
 <section id="literature-review" class="level3">
 <h3 class="anchored" data-anchor-id="literature-review">Literature Review</h3>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This project is informed by several key sources: Norman and Arwood (1998) [1], James and Logan (2008) [2], and Boman and Gallupe (2020) [3]. Together, these works provide a foundation for understanding the sociological determinants of crime, the limitations of available data, and the unique disruptions brought about by the COVID-19 pandemic.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Norman and Arwood’s 1998 study analyzed the relationship between crime rates and a variety of sociological measures at the county level in Minnesota. Their findings demonstrated that among a variety of traditional sociological indicators of crime only alcohol consumption proxied by the county’s alcohol tax revenue, net migration in and out of the county, and households missing one or both parents, were significantly related to crime in Minnesota counties at the .05 level.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Norman and Arwood’s 1998 study [1] analyzed the relationship between crime rates and a variety of sociological measures at the county level in Minnesota. Their findings demonstrated that among a variety of traditional sociological indicators of crime only alcohol consumption proxied by the county’s alcohol tax revenue, net migration in and out of the county, and households missing one or both parents, were significantly related to crime in Minnesota counties at the .05 level.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-striped table-hover table-condensed caption-top table-sm small" data-quarto-postprocess="true">
@@ -222,18 +217,18 @@ window.Quarto = {
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This work provides the methodological and theoretical foundation for the present project. While their study focused on the sociological context of the late 20th century, this research builds upon their approach by incorporating data up to the 2024 ACS 5 estimates and examining how these relationships may have shifted due to the COVID-19 pandemic.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; While this study aims to replicate the factors studied in Norman and Arwood’s original study there are some key differences in the analyses. Comparing the variables used in each study, both crime rates are a 5 year average of part 1 index crimes retrieved from the FBI’s crime reports. To measure household income levels the study includes the median income, percentage of the population below $5000 income, and below the poverty line. Both studies draw from the U.S census’ 5 year ACS estimates. The same is done for the measures of heterogeneity, net migration, households with less than two parents, the percent of the population made up of young males, and the percent of the population with a high school diploma or greater. In the original study, population density is stated to come from the census’ estimates, but due to a lack of availability it is determined in this study to be the population of the county divided by the area of the county in m<sup>2</sup>. The final explanatory variable used in their study, revenue from taxes on alcohol sales, comes from the Minnesota Department of Revenue website and is also averaged across 5 year periods. Having mostly the same source data as Norman and Arwood’s [1] original study, a general comparison to their original 1998 study is still possible with the understanding of the real as well as potential changes in the data’s collection and reporting.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In order to track some of these changes, James and Logan’s 2008 report provides an overview of how the FBI collects and reports crime statistics, detailing the methodologies, limitations, and potential sources of bias within the Uniform Crime Reporting (UCR) database. Their report is highlights challenges such as underreporting, changes in reporting practices, and differences in local enforcement priorities. James and Logan state that underreporting in the FBI crime data is a large problem, with systematic errors produced from the way that the data is collected. This bias stems from the fact that the only crimes the FBI report are ones that the police have reported to them, and police officers are only aware of citizen reported crimes leading to two large sources of underreporting. Changes in reporting practices also affect this data, and more so for the arson and rape counts. The way that rape was defined in this data changed in 2013 to remove the requirement of it being ‘forcible’ increasing the counts of this crime around this period as local law enforcement agencies changed their definition.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; While this study aims to replicate the factors studied in Norman and Arwood’s original study [1] there are some key differences in the analyses. Comparing the variables used in each study, both crime rates are a 5 year average of part 1 index crimes retrieved from the FBI’s crime reports. To measure household income levels the study includes the median income, percentage of the population below $5000 income, and below the poverty line. Both studies draw from the U.S census’ 5 year ACS estimates. The same is done for the measures of heterogeneity, net migration, households with less than two parents, the percent of the population made up of young males, and the percent of the population with a high school diploma or greater. In the original study, population density is stated to come from the census’ estimates, but due to a lack of availability it is determined in this study to be the population of the county divided by the area of the county in m<sup>2</sup>. The final explanatory variable used in their study, revenue from taxes on alcohol sales, comes from the Minnesota Department of Revenue website and is also averaged across 5 year periods. Having mostly the same source data as Norman and Arwood’s [1] original study, a general comparison to their original 1998 study is still possible with the understanding of the real as well as potential changes in the data’s collection and reporting.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In order to track some of these changes, James and Logan’s 2008 [2] report provides an overview of how the FBI collects and reports crime statistics, detailing the methodologies, limitations, and potential sources of bias within the Uniform Crime Reporting (UCR) database. Their report is highlights challenges such as underreporting, changes in reporting practices, and differences in local enforcement priorities. James and Logan state that underreporting in the FBI crime data is a large problem, with systematic errors produced from the way that the data is collected [2]. This bias stems from the fact that the only crimes the FBI report are ones that the police have reported to them, and police officers are only aware of citizen reported crimes leading to two large sources of underreporting. Changes in reporting practices also affect this data, and more so for the arson and rape counts. The way that rape was defined in this data changed in 2013 to remove the requirement of it being ‘forcible’ increasing the counts of this crime around this period as local law enforcement agencies changed their definition.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Furthermore, in any one instance of crimes being committed e.g a break in and homicide, only the homicide will be reported as it is the more severe of the two crimes. This leads to additional underreporting of less ‘severe’ crimes frequently committed in tandem with more ‘severe’ crimes. The one exception to this rule being arson which is counted on top of any crime it is committed with. However, arson counts are only recorded if it can be proven that the fire was willfully set, meaning that it is difficult to actually prove and eventually report arson as an offense.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; All of these insights are crucial for interpreting the results of this project, as they remind us that observed patterns in county-level crime rates may partly reflect variation in data quality or reporting practices rather than actual changes in criminal activity. By incorporating this perspective, this study can more carefully interpret both the limitations and strengths of using FBI crime statistics in the context of this paper’s results.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Boman and Gallupe’s research examines the effects of the COVID-19 pandemic on crime trends, with special attention to how crime patterns shifted during periods of widespread social disruption. They found that while many types of crime declined during the pandemic, homicide and other serious violent crimes rose due to young people (primarily males) being put in positions where they were in close proximity to partners or family members and further from their friends. This change in social structures led to less time spent with friends in the situations where the smaller crimes such as vandalism are often committed. They also hypothesized that this was due to a lack of normal outlets and these potentially minor offenders being moved into a situation where they have a much greater chance of committing a violent crime against their partners or family members &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Their findings suggest that structural shocks, such as a global pandemic, can have separate effects on different categories of crime. This study directly informs the paper, as it investigates whether similar shifts occurred in Minnesota counties, mainly the increased prevalence of violent crime relative to overall crime rates as well as a potential shift in the predictability of crime after the pandemic.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Taken together, these works establish the intellectual groundwork for this project. Norman and Arwood demonstrate how sociological indicators can be systematically linked to crime rates at the county level. James and Logan’s 2008 report provides guidance on the interpretation of crime statistics, ensuring that my analysis acknowledges the methodological challenges of working with FBI data. Finally, Boman and Gallupe highlight the COVID-19 pandemic as a significant structural event that reshaped crime in the United States, motivating the inclusion of a temporal comparison between pre and post-pandemic trends in Minnesota. Building on these sources, my study aims to contribute by both replicating and extending prior methods to assess whether longstanding sociological-crime relationships have been altered by the COVID-19 pandemic.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Boman and Gallupe’s [3] research examines the effects of the COVID-19 pandemic on crime trends, with special attention to how crime patterns shifted during periods of widespread social disruption. They found that while many types of crime declined during the pandemic, homicide and other serious violent crimes rose due to young people (primarily males) being put in positions where they were in close proximity to partners or family members and further from their friends. This change in social structures led to less time spent with friends in the situations where the smaller crimes such as vandalism are often committed. They also hypothesized that this was due to a lack of normal outlets and these potentially minor offenders being moved into a situation where they have a much greater chance of committing a violent crime against their partners or family members &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Their findings suggest that structural shocks, such as a global pandemic, can have separate effects on different categories of crime. This study directly informs the paper, as it investigates whether similar shifts occurred in Minnesota counties, mainly the increased prevalence of violent crime relative to overall crime rates as well as a potential shift in the predictability of crime after the pandemic.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Taken together, these works establish the intellectual groundwork for this project. Norman and Arwood [1] demonstrate how sociological indicators can be systematically linked to crime rates at the county level. James and Logan’s 2008 report [2] provides guidance on the interpretation of crime statistics, ensuring that my analysis acknowledges the methodological challenges of working with FBI data. Finally, Boman and Gallupe [3] highlight the COVID-19 pandemic as a significant structural event that reshaped crime in the United States, motivating the inclusion of a temporal comparison between pre and post-pandemic trends in Minnesota. Building on these sources, my study aims to contribute by both replicating and extending prior methods to assess whether longstanding sociological-crime relationships have been altered by the COVID-19 pandemic.</p>
 </section>
 <section id="research-questions" class="level3">
 <h3 class="anchored" data-anchor-id="research-questions">Research Questions</h3>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Consistent with the findings of Norman and Arwood [1], we would expect that prior to the COVID-19 pandemic, county-level crime rates will be positively associated with indicators of social disorganization, particularly higher net migration rates, greater proportions of households missing one or both parents, and higher levels of alcohol consumption proxied by county alcohol tax revenue. In contrast, more traditional socioeconomic indicators such as median household income, educational attainment, and population density are expected to exhibit weak or statistically insignificant relationships with crime in the pre-pandemic period, as is found in earlier work.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The central hypothesis of this study is that COVID represents a structural shift in the relationship between crime and its sociological determinants. Specifically, that the magnitude and significance of these relationships differ between the pre-pandemic and post-pandemic periods across Minnesota counties. From Jake Boman and Owen Gallupe, this study further hypothesizes that post-pandemic crime patterns, and violent crime, are more strongly associated with indicators of family structure and demographic composition, such as the proportion of young males and family disruption, reflecting shifts in routine activities and social proximity during periods of social restriction<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Acknowledging the limitations of crime data highlighted by Nathan James and Wayne Logan as well as those acknowledged in Norman and Arwood’s study, this study hypothesizes that observed changes in crime rates will vary across offense types and counties in ways that reflect not only true changes in criminal behavior but also differences in reporting practices and data quality. As a result, changes in the modeled relationships between crime and its determinants should be interpreted as the combination of social disruption and institutional variation rather than as being due to criminal activity alone.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The central hypothesis of this study is that COVID represents a structural shift in the relationship between crime and its sociological determinants. Specifically, that the magnitude and significance of these relationships differ between the pre-pandemic and post-pandemic periods across Minnesota counties. From Jake Boman and Owen Gallupe [3], this study further hypothesizes that post-pandemic crime patterns, and violent crime, are more strongly associated with indicators of family structure and demographic composition, such as the proportion of young males and family disruption, reflecting shifts in routine activities and social proximity during periods of social restriction<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Acknowledging the limitations of crime data highlighted by Nathan James and Wayne Logan [2] as well as those acknowledged in Norman and Arwood’s [1] study, this study hypothesizes that observed changes in crime rates will vary across offense types and counties in ways that reflect not only true changes in criminal behavior but also differences in reporting practices and data quality. As a result, changes in the modeled relationships between crime and its determinants should be interpreted as the combination of social disruption and institutional variation rather than as being due to criminal activity alone.<br>
 </p>
 </section>
 <section id="data-description" class="level3">
@@ -262,10 +257,14 @@ window.Quarto = {
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; With this data now organized and graphed above, the clear positive trend in the revenue from alcohol sales taxes can now be seen up until COVID. This then dips sharply during COVID and sees a clear structural shift afterwards. These trends , at least after COVID, follow the common narrative seen in studies such as the 2024 National Survey on Drug Use and Health [8] and the Minnesota Department of Health [9]. These reports suggest that alcohol use by adults and minors has decreased or stayed the same in the past years and had a slight uptick during COVID. The drop in sales during COVID could however represent a problem with taxes as a proxy as all in-person stores saw declines in consumerism during the pandemic.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias [5]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases, generated from who is sampled and who chooses to respond to a poll, will have to be addressed in the final interpretation of the results as a potential source of bias.<br>
+</p>
+<section id="census-summarization" class="level4">
+<h4 class="anchored" data-anchor-id="census-summarization">Census Summarization</h4>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; County level 5 year estimates (ACS5) for the demographic variables of interest during the years of 2015-2019 and 2020-2024 were then obtained from the U.S Census Bureau through the tidycensus package. These estimates have their own problems such as sampling and response bias [5]. The main problems from this census data are the fact that data on every county is only available in 5 year average estimates and that these numbers are estimates based on a sample of the population. However, the 5 year averaging is not a problem in our case as we want to examine structural changes resulting from the COVID-19 pandemic and an average across 5 years will be able to represent that. The sampling and response biases, generated from who is sampled and who chooses to respond to a poll, will have to be addressed in the final interpretation of the results as a potential source of bias.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The dependent variable of interest, crime rate, is calculated by summing a 5 year average of all part 1 index crimes collected from the FBI and dividing it by the total population estimate from the census. The available demographic variables (officers per 1000 people, median household income, the percent of households with less than $5000 income, the percent of people with a high school or greater degree, the percent of children missing parents, the percent of non white people, the percent young males, persons per household, persons per m<sup>2</sup>, and per capita net migration) used in Norman and Arwood’s 1998 study [1] were then calculated using a variety of census estimates.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The final data being used for modeling contains two rows for each of the 87 Minnesota counties representing the pre and post COVID periods with 5 year average estimates for 2015-2019 and 2020-2024 respectively. The variables used in Norman and Arwood’s 1998 study [1] will be tested in their effects on crime rates before and after to address the question of: how have the relationships between crime and its determinants changed over time, particularly in response to the COVID-19 pandemic?<br>
 </p>
+</section>
 </section>
 <section id="research-findings" class="level3">
 <h3 class="anchored" data-anchor-id="research-findings">Research Findings</h3>
@@ -426,71 +425,98 @@ window.Quarto = {
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">variable</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">estimate</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">p.value</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">estimate</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">estimate_1998</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">p.value</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">p.value_1998</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">persons_per_m2</td>
-<td style="text-align: right;">0.4988668</td>
-<td style="text-align: right;">0.0000000</td>
+<td style="text-align: left;">0.4989</td>
+<td style="text-align: right;">0.4533</td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">per_capita_migration</td>
-<td style="text-align: right;">0.4249200</td>
-<td style="text-align: right;">0.0000000</td>
+<td style="text-align: left;">0.4249</td>
+<td style="text-align: right;">0.4809</td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">pct_non_white</td>
-<td style="text-align: right;">0.4094770</td>
-<td style="text-align: right;">0.0000000</td>
+<td style="text-align: left;">0.4095</td>
+<td style="text-align: right;">0.4565</td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">per_capita_alc_taxes</td>
-<td style="text-align: right;">0.3032593</td>
-<td style="text-align: right;">0.0000475</td>
+<td style="text-align: left;">0.3033</td>
+<td style="text-align: right;">0.5816</td>
+<td style="text-align: left;">0.000</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">persons_per_household</td>
-<td style="text-align: right;">0.2517364</td>
-<td style="text-align: right;">0.0008057</td>
+<td style="text-align: left;">0.2517</td>
+<td style="text-align: right;">0.1184</td>
+<td style="text-align: left;">0.001</td>
+<td style="text-align: right;">0.275</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pct_highschool_or_greater</td>
-<td style="text-align: right;">-0.1907060</td>
-<td style="text-align: right;">0.0117145</td>
+<td style="text-align: left;">-0.1907</td>
+<td style="text-align: right;">0.4999</td>
+<td style="text-align: left;">0.012</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">pct_young_males</td>
-<td style="text-align: right;">0.1832375</td>
-<td style="text-align: right;">0.0155131</td>
+<td style="text-align: left;">0.1832</td>
+<td style="text-align: right;">0.3173</td>
+<td style="text-align: left;">0.016</td>
+<td style="text-align: right;">0.003</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pct_lessthan_5kincome</td>
-<td style="text-align: right;">0.1380964</td>
-<td style="text-align: right;">0.0691860</td>
+<td style="text-align: left;">0.1381</td>
+<td style="text-align: right;">-0.2707</td>
+<td style="text-align: left;">0.069</td>
+<td style="text-align: right;">0.011</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">officers</td>
-<td style="text-align: right;">0.1084093</td>
-<td style="text-align: right;">0.1544724</td>
+<td style="text-align: left;">0.1084</td>
+<td style="text-align: right;">-0.4099</td>
+<td style="text-align: left;">0.154</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pct_children_missing_parents</td>
-<td style="text-align: right;">0.0864215</td>
-<td style="text-align: right;">0.2568433</td>
+<td style="text-align: left;">0.0864</td>
+<td style="text-align: right;">0.7392</td>
+<td style="text-align: left;">0.257</td>
+<td style="text-align: right;">0.001</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">median_household_income_acs5</td>
-<td style="text-align: right;">-0.0067137</td>
-<td style="text-align: right;">0.9299388</td>
+<td style="text-align: left;">-0.0067</td>
+<td style="text-align: right;">0.2833</td>
+<td style="text-align: left;">0.930</td>
+<td style="text-align: right;">0.008</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Further, correlation analyses show that many of the variables of interest exhibit reasonably strong and significant correlations with per capita crime. Some of the largest differences seen here between this study and Norman and Arwood’s [1] are the findings of persons per household to be significant while the previous study found no significant correlation, as well as the insignificance of the correlations with median household income and officers per 1000 people. Particularly the persons per household correlation change aligns with Boman and Gallupe’s 2020 study suggesting that the more people are quarantined together, the more violence could occur.</p>
+</section>
+<section id="manual-variable-selection" class="level4">
+<h4 class="anchored" data-anchor-id="manual-variable-selection">Manual Variable Selection</h4>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -505,10 +531,11 @@ window.Quarto = {
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Across these predictors in the above plot, a potentially significant change in slope can be seen for log_officers, log_per_capita_alc_taxes, pct_highschool_or_greater, per_capita_migration, and the reservation and top cities indicator variables. Due to the plots above, their interactions with the pre and post COVID indicator will also be tested in subsequent regression models.<br>
 </p>
 </section>
-<section id="lasso-estimation" class="level4">
-<h4 class="anchored" data-anchor-id="lasso-estimation">LASSO Estimation</h4>
+<section id="lasso-estimation-and-variable-seclection" class="level4">
+<h4 class="anchored" data-anchor-id="lasso-estimation-and-variable-seclection">LASSO Estimation and Variable Seclection</h4>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To further assess the validity of these variable selection decisions and to identify any potentially omitted predictors or interaction effects, a LASSO regression was fit using the full set of available variables and all interaction terms. This model provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike other traditional regressions, which rely on statistical significance conditional on a specified model, the LASSO model penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance. These factors make it a useful tool in variable selection, as all unimportant variables will have their coefficients set to 0 or near 0 and dropped automatically.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Formally, the LASSO estimation solves a optimization problem in which the sum of squared residuals is minimized subject to an L1 penalty on the absolute values of the regression coefficients. This penalty introduces a bias–variance tradeoff by shrinking coefficient estimates toward zero in exchange for lower variance and improved predictive performance. The L1 penalty is particularly important because, unlike in ridge regression, it allows the model to select a subset of the predictors rather than merely shrinking all coefficients. The strength of the penalty parameter is chosen via cross-validation, balancing model fit against complexity. In this setting, LASSO is especially well suited for evaluating a the large number of correlated socioeconomic predictors and interaction terms, where traditional OLS estimation suffers from collinearity and overfitting.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Formally, the LASSO estimation solves an optimization problem in which the sum of squared residuals is minimized subject to an L1 penalty on the absolute values of the regression coefficients. This penalty introduces a bias–variance tradeoff by shrinking coefficient estimates toward zero in exchange for lower variance and improved predictive performance. The L1 penalty is particularly important because, unlike in ridge regression, it allows the model to select a subset of the predictors rather than merely shrinking all coefficients. The strength of the penalty parameter is chosen via cross-validation, balancing model fit against complexity. In this setting, LASSO is especially well suited for evaluating a the large number of correlated socioeconomic predictors and interaction terms, where traditional OLS estimation suffers from collinearity and overfitting.<br>
+</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-striped caption-top table-sm small" data-quarto-postprocess="true">
@@ -704,7 +731,7 @@ window.Quarto = {
 </div>
 </div>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The above regression results reveal several robust relationships between county-level crime rates and key socioeconomic and spatial predictors. Median household income is negatively associated with crime, consistent with prior literature, while population density (measured as the log of persons per square meter), per-capita alcohol tax revenue, and the proportion of non-white residents are all positively associated with higher crime rates. Counties containing reservations exhibit significantly lower baseline crime rates on average; however, this effect is strongly moderated by net migration, as reflected in the large and highly significant interaction between reservation status and per-capita migration.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A large concern with county-level ACS data is the presence of both spatial and temporal autocorrelation, which can lead to downward-biased standard errors and overly generous p-values under OLS assumptions. To partially address this issue, the model is estimated using standard errors that are robust to clustering across the same counties. Both classical and clustering-robust (CR2) standard errors are reported for comparison, inference is also based on these cluster-robust estimators. Multiple clustering and heteroskedastic corrections were tried, including CR1 (Liang–Zeger), CR2, and HC. Across all three approaches, the key coefficients, particularly the reservation-by-migration interaction, remain statistically significant. As stated by Alberto Abadie et al.&nbsp;[10], clustering errors largely are overly conservative, however CR2 standard errors are still reported here, as in this case they don’t impact significance of the chosen predictors heavily and provide reasonable increases in standard errors while avoiding the excessive corrections of CR3.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A large concern with county-level ACS data is the presence of both spatial and temporal autocorrelation, which can lead to downward-biased standard errors and overly generous p-values under OLS assumptions. To partially address this issue, the model is estimated using standard errors that are robust to clustering across the same counties. Both classical and clustering-robust (CR2) standard errors are reported for comparison, inference is also based on these cluster-robust estimators. Multiple clustering and heteroskedastic corrections were tried, including CR1 (Liang–Zeger), CR2, and HC3. Across all three approaches, the key coefficients, particularly the reservation-by-migration interaction, remain statistically significant. As stated by Alberto Abadie et al.&nbsp;[10], clustering errors largely are overly conservative, however CR2 standard errors are still reported here, as in this case they don’t impact significance of the chosen predictors heavily and provide reasonable increases in standard errors while avoiding the excessive corrections of CR3.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Several variables and interaction terms examined in earlier specifications, including policing levels, urban-county indicators, educational attainment, and all COVID interactions were excluded from the final model due to consistent insignificance once robust inference was applied. Notably, the post-COVID indicator itself does not significantly alter the relationships between crime and its predictors, suggesting that while crime rates increased during the pandemic period, the structural relationships between crime and traditional sociological factors remained largely the same.<br>
 </p>
 <div class="cell">
@@ -748,7 +775,7 @@ data:  total_model$residuals
 W = 0.98868, p-value = 0.1787</code></pre>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Additionally, as can be seen above the model also satisfies it’s normality in the residuals assumption failing to reject the null hypothesis that the residuals are normally distributed at a .17 level. Furthermore, as can be seen below the majority of residuals match up with the normal distribution barring small deviations at the tails. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is contained to only 6 points and not enough to not impact the conclusions from this model meaningfully.<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Additionally, as can be seen above the model also satisfies it’s normality in the residuals assumption failing to reject the null hypothesis of the Shapiro-Wilk normality test that the residuals are normally distributed, at a .17 level. Furthermore, as can be seen below the majority of residuals match up with the normal distribution barring small deviations at the tails. However on both upper and lower tails there is some drift above and below the theoretical normal distribution which is contained to only 6 points and not enough to not impact the conclusions from this model meaningfully.<br>
 </p>
 <div class="cell">
 <div class="cell-output-display">
@@ -759,6 +786,9 @@ W = 0.98868, p-value = 0.1787</code></pre>
 </div>
 </div>
 </div>
+</section>
+<section id="ols-interpretations" class="level4">
+<h4 class="anchored" data-anchor-id="ols-interpretations">OLS Interpretations</h4>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The linear model reveals a limited set of robust predictors of county-level crime, with many traditional sociological variables losing explanatory power once controls and interaction terms are included. As in Norman and Arwood’s previous work, only a small subset of variables remain statistically significant at conventional levels, as well as all interaction terms with the post-COVID indicator not being statistically distinguishable from zero.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The first notable finding concerns median household income, which exhibits a negative relationship with per-capita crime rates. The coefficient on median_household_income_acs5 (-0.0000013) implies that a $10,000 increase in median household income is associated with a reduction of approximately 0.169 crimes per 1,000 residents on average, holding all else constant. While modest, this effect is precisely estimated and highly significant, suggesting that higher-income counties consistently experience lower crime rates, controlling for density, demographics, and other covariates. This aligns with Norman and Arwood’s earlier findings that economic deprivation is associated with higher crime, supporting the conclusion that economic conditions remain a meaningful determinant.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Population density emerges as a stable predictor but modest in it’s effects on crime. The log of persons per square meter is positive and highly significant (0.0204319), implying for every additional 10% increase in population density you would expect an average increase of .0042 crimes per 1000 people holding all else constant. This finding strengthens the evidence relative to Norman and Arwood’s earlier work, where population density was only marginally significant, and suggests that urban density is a key structural factor in crime.<br>
@@ -766,13 +796,21 @@ W = 0.98868, p-value = 0.1787</code></pre>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The log of the percent of non-white residents is positive (0.009) but with only a very marginal effect; a 10% increase in the percent non-white population is associated with approximately 0.0008 additional crimes per 1,000 residents. This suggests that racial heterogeneity, while correlated with crime in simpler models, does not independently explain variation once density, income, and other controls are included. As in stated prior work, this relationship likely reflects broader geographic and socioeconomic clustering rather than a direct causal mechanism.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Similarly, per-capita alcohol tax revenue (log_per_capita_alc_taxes) is positive but modest (0.0197153): a 10% increase in per-capita alcohol tax revenue is associated with approximately 0.004 additional crimes per 1,000 residents. Educational attainment (percentage with a high school degree or greater) is not significant, suggesting that education primarily proxies for density and urbanization rather than exerting a direct effect on crime.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Variables capturing large city status, police presence, and migration alone are not significant after controls are included. Their estimated impacts in original units are close to zero, further highlighting that migration effects in non-reservation counties are minimal. The inclusion of the reservation × migration interaction explains most of the predictive variation previously attributed to migration, underscoring the importance of context-dependent relationships for these variables.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Finally, the post-COVID indicator itself is highly statistically insignificant and removed from the model, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties.</p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Finally, the post-COVID indicator itself is highly statistically insignificant and removed from the model, suggesting that once demographic and economic factors are accounted for, there is no clear evidence of a structural shift in the relationship between crime and its traditional predictors following the pandemic even if previous plots has shown some evidence of its effects. The insignificance of nearly all interaction terms reinforces this conclusion, indicating that COVID-19 did not structurally alter how socioeconomic characteristics relate to crime across counties.<br>
+</p>
 </section>
 <section id="structural-break-tests" class="level4">
 <h4 class="anchored" data-anchor-id="structural-break-tests">Structural Break Tests</h4>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; This interpretation is further supported by the structural break tests presented below, which fail to detect meaningful parameter instability over time. Two complementary tests are employed: the Chow (M-fluctuation) test and the CUSUM test. The Chow test explicitly evaluates whether the regression coefficients differ across a predefined breakpoint, in this case the onset of the COVID-19 period. It tests the null hypothesis that the relationship between crime and its explanatory variables remains constant before and after the break. The results of the Chow test fail to reject this null hypothesis, indicating no statistically significant structural change in the estimated coefficients following the onset of COVID.<br>
-The CUSUM test provides a more flexible assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether the estimated parameters drift outside their confidence bounds. In the present analysis, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period.<br>
-Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.</p>
+The CUSUM test provides a more flexible assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether the estimated parameters drift outside their confidence bounds. In the present analysis, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period. This is seen in the failure to reject the null hypothesis that the variance in the estimated parameters is stable over time.<br>
+Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.<br>
+</p>
+</section>
+</section>
+<div class="columns">
+<div class="column">
+<section id="chow-test-post-covid-breakpoint" class="level3">
+<h3 class="anchored" data-anchor-id="chow-test-post-covid-breakpoint">Chow test (post-COVID breakpoint)</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -781,6 +819,12 @@ Together, these results provide strong evidence that the underlying relationship
 data:  total_model
 f(efp) = 1.2684, p-value = 0.4426</code></pre>
 </div>
+</div>
+</section>
+</div><div class="column">
+<section id="cusum-test" class="level3">
+<h3 class="anchored" data-anchor-id="cusum-test">CUSUM test</h3>
+<div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>
     OLS-based CUSUM test
@@ -790,6 +834,8 @@ S0 = 0.78581, p-value = 0.5674</code></pre>
 </div>
 </div>
 </section>
+</div>
+</div>
 <section id="differenced-model-estimation" class="level4">
 <h4 class="anchored" data-anchor-id="differenced-model-estimation">Differenced Model Estimation</h4>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A model is now fit using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates across COVID. Using this approach, the only variables found to have a statistically significant relationship at the &lt;.05 level on the change in crime rates is change in the population density measured in m<sup>2</sup> as well as the change in the proportion of young males in the population. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. The borderline significance of young males in this case seems to be a type 1 error, especially due to its high lack of significance in other models. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.<br>
@@ -862,7 +908,8 @@ S0 = 0.78581, p-value = 0.5674</code></pre>
 </table>
 </div>
 </div>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The differenced LASSO model also only selects the population density measure, proportion of young males, and percent non-white. The percent non-white variable remains relatively insignificant (p=.185) in the OLS regression. The two other variables are estimated again with a negative coefficients showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for young males remains much lower than for population density further showcasing its potential invalidity as a predictor of crime.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The differenced LASSO model also only selects the population density measure, proportion of young males, and percent non-white. The percent non-white variable remains relatively insignificant (p=.185) in the OLS regression. The two other variables are estimated again with a negative coefficients showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for young males remains much lower than for population density further showcasing its potential invalidity as a predictor of crime.<br>
+</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-striped caption-top table-sm small" data-quarto-postprocess="true">
@@ -894,7 +941,6 @@ S0 = 0.78581, p-value = 0.5674</code></pre>
 </table>
 </div>
 </div>
-</section>
 </section>
 <section id="conclusions" class="level3">
 <h3 class="anchored" data-anchor-id="conclusions">Conclusions</h3>

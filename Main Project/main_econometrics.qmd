@@ -414,6 +414,25 @@ kable(summary_stats, format = "html",
       An examination of the predictive variables used in \[1\] indicate no statistically significant changes at the 5% level between the pre and post-COVID periods for the per capita migration, percent young males, percent of children missing parents, officers per 1,000 residents, persons per household, per capita alcohol taxes, and persons per square meter. However, across the rest of the variables we see relatively larger and more significant changes across crime rates, income, education, heterogeneity, and revenue from alcohol taxes.
 
 ```{r acs_5_pre_modeling_comparisons2}
+crime_correlation_1998 <- data.frame(
+  variable = c(
+    "per_capita_alc_taxes", "pct_non_white", "per_capita_migration", "persons_per_household", "persons_per_m2",
+    "pct_children_missing_parents", "pct_lessthan_5kincome",
+    "median_household_income_acs5", "officers", "pct_highschool_or_greater", "pct_young_males"
+  ),
+  estimate_1998 = c(
+     0.5816, 0.4565, 0.4809, 0.1184, 0.4533,
+     0.7392, -0.2707,
+     0.2833, -.4099, 0.4999, 0.3173
+  ),
+  p.value_1998 = c(
+    0.001, 0.001, 0.001, 0.275, 0.001,
+    0.001, 0.011,
+    0.008, .001, 0.001, 0.003
+  )
+)
+
+
 ### correlation matrix
 target <- "crime_rate"
 crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
@@ -427,7 +446,12 @@ crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
     estimate = test$estimate[[1]],
     p.value = test$p.value
   )
-}) |> bind_rows()|> arrange(p.value)
+}) |> bind_rows()|> arrange(p.value)|>
+  mutate(estimate = formatC(estimate, format = "f", digits = 4),
+         p.value = formatC(p.value, format = "f", digits = 3))
+
+crime_correlation <- left_join(crime_correlation, crime_correlation_1998)|>
+  select(variable, estimate, estimate_1998, p.value, p.value_1998)
 
 kable(crime_correlation, format = "html",
              caption = "Significance of correlation with crime rates")|>kable_styling("striped")  
@@ -824,22 +848,39 @@ plot(total_model, 2)
   The CUSUM test provides a more flexible assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether the estimated parameters drift outside their confidence bounds. In the present analysis, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period. This is seen in the failure to reject the null hypothesis that the variance in the estimated parameters is stable over time.\
   Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.\
 
-```{r chow_cum_tests}
+::::: columns
+::: column
+### Chow test (post-COVID breakpoint)
+
+```{r chow_test}
 # Chow test using the 'post_covid' variable as the breakpoint
-chow_test <- strucchange::sctest(total_model, type = "Chow", point =
-                                   which(acs_5_yearly_data$post_covid == 1)[1])
+chow_test <- strucchange::sctest(
+  total_model,
+  type = "Chow",
+  point = which(acs_5_yearly_data$post_covid == 1)[1]
+)
 
 print(chow_test)
+```
+:::
+::: column
+### CUSUM test
+```{r}
+# CUSUM process
+cumsum_process <- strucchange::efp(
+  total_model,
+  type = "OLS-CUSUM",
+  data = acs_5_yearly_data
+)
 
-# CUMSUM test
-cumsum_process <- strucchange::efp(total_model, type = "OLS-CUSUM", data = acs_5_yearly_data)
-
-# statistical test on the CUMSUM process
+# statistical test on the CUSUM process
 cumsum_test <- strucchange::sctest(cumsum_process)
 
 print(cumsum_test)
-# plot(cumsum_process)
 ```
+
+:::
+:::::
 
 #### Differenced Model Estimation
 
@@ -1053,7 +1094,7 @@ as.matrix(coef(best_model))|>
 
 ### Final Summary
 
-      Overall, the pandemic produced a noticeable, short-lived rise in some serious offenses, but it did not fundamentally reshape the cross-county relationships between serious crime and a county’s socioeconomic and spatial characteristics. Income inequality and urban density remain the dominant, stable predictors of county level crime in Minnesota. Many of the commonly discussed sociological measures explain little additional cross-county variation once these structural factors are accounted for.\
+      Overall, the pandemic produced a noticeable, short-lived rise in some serious offenses, but did not fundamentally reshape the cross-county relationships between serious crime and a county’s socioeconomic and spatial characteristics. Income inequality and urban density remain the dominant, stable predictors of county level crime in Minnesota. Many of the commonly discussed sociological measures explain little additional cross-county variation once these structural factors are accounted for.\
 
 ::: {style="text-align: center;"}
 **Citations**
