@@ -8,25 +8,31 @@ editor: visual
 ```{r Package_Data_Imports}
 #| include: false
 
- library(tidyverse)
- library(tidycensus)
+library(tidyverse)
+library(tidycensus)
 
- library(fpp3)
- library(sf)
+library(fpp3)
+library(sf)
+library(patchwork)
+library(knitr)
+library(kableExtra)
+library(broom)
+library(Metrics)
+library(lmtest)
+library(sandwich)
+library(lme4)
+library(packcircles)
+library(glmnet)
+library(Matrix)
+library(clubSandwich)
 
- library(patchwork)
- library(knitr)
- library(kableExtra)
- library(broom)
- library(Metrics)
- library(lmtest)
- library(sandwich)
- library(lme4)
+acs_5_yearly_data <- readRDS("../data/acs_5_yearly_data.rds")
+acs_1_yearly_data <- readRDS("../data/acs_1_yearly_data.rds")
+mapping_yearly_data <- readRDS("../data/mapping_yearly_data.rds")
+crime_data <- readRDS("../data/crime_data_merged.rds")
+alc_data <- readRDS("../data/alc_data.rds")
 
- acs_5_yearly_data <- readRDS("../data/acs_5_yearly_data.rds")
- acs_1_yearly_data <- readRDS("../data/acs_1_yearly_data.rds")
- mapping_yearly_data <- readRDS("../data/mapping_yearly_data.rds")
- crime_data <- readRDS("../data/crime_data_merged.rds")
+font = 15
 ```
 
 # Introduction
@@ -189,46 +195,17 @@ theme(
 ```{r crime_and_pop_mapping}
 #| warning: False
   
-# Base map for year 2023
+# Base map for year 2024
 data_2023 <- mapping_yearly_data |> 
-  filter(year == 2023)
+  filter(year == 2024)
 
 # Compute centroids only for the top cities
 city_centroids <- data_2023 |>
   filter(top_cities == 1) |>
   st_centroid()
 
-# Plot A — population
-a <- ggplot(data_2023) +
-  geom_sf(aes(fill = total_population_acs5), color = "white") +
-  # black border for reservations
-  geom_sf(
-    data = subset(data_2023, reservations == 1),
-    fill = NA,
-    color = "black",
-    size = .75
-  ) +
-  # Black dot at centroid for top cities
-  geom_sf(
-    data = city_centroids,
-    color = "black", size = 1.8
-  ) +
-  scale_fill_viridis_c(
-    option = "plasma",
-    trans = "log10",
-    name = "Total Population",
-    labels = scales::label_number(scale_cut = scales::cut_short_scale())
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    legend.position = "bottom",
-    plot.margin = margin(0, 0, 0, 0)
-  )
-
 # Plot B — crime rate
-b <- ggplot(data_2023) +
+ggplot(data_2023) +
   geom_sf(aes(fill = crime_rate), color = "white") +
   geom_sf(
     data = subset(data_2023, reservations == 1),
@@ -245,23 +222,38 @@ b <- ggplot(data_2023) +
     option = "plasma",
     name = "Crime Rates"
   ) +
+  # dummy points for custom legend
+  geom_point(aes(x = 0, y = 0, shape = "Top 5 Cities", color = "Top 5 Cities"),
+             size = 4, show.legend = TRUE) +
+  geom_point(aes(x = 0, y = 0, shape = "Reservations", color = "Reservations"),
+             size = 4, show.legend = TRUE) +
+  scale_color_manual(
+    name = "",
+    values = c("Top 5 Cities" = "black", "Reservations" = "black")
+  ) +
+  scale_shape_manual(
+    name = "",
+    values = c("Top 5 Cities" = 20, "Reservations" = 0)
+  ) +
+  coord_sf(
+    # Minnesota approx bounds
+    xlim = c(-97, -90.0),  # longitudes (west to east)
+    ylim = c(43.4, 49.25)     # latitudes (south to north)
+  ) +
   theme_minimal() +
   theme(
     axis.text = element_blank(),
     axis.ticks = element_blank(),
-    legend.position = "bottom",
-    plot.margin = margin(0, 0, 0, 0)
-  )
-
-# Combine with patchwork
-a + b +
-  plot_annotation(
-    title = "Overall Population Analysis (2023 ACS 5 Year Estimates)",
-    subtitle = "Population by County and Yearly Trends",
-    caption = "Centroids on counties with the top 5 largest cites and border around counties with reservations
-    Source: ACS 5-Year Estimates and FBI crime data"
-    
-  )
+    legend.position = "right",
+    legend.direction = "vertical",
+    plot.margin = margin(0, 0, 0, 0),
+    plot.title = element_text(
+      hjust = 0.5,            # center the title
+      margin = margin(b = 15), # add space below the title
+      size = 16               # optional: increase title size
+    )
+  )+
+  labs(y=NULL,x=NULL, title = "Overall Crime Rates Across Minnesota (Post COVID)")
 ```
 
 ## Summary Statistics
@@ -272,10 +264,10 @@ a + b +
 ```{r Summary_Stats}
 ### vars to calculate stats across for modeling
 modeling_vars <- c(
-  "crime_rate",
+  "crime_rate", "per_capita_migration", "per_capita_alc_taxes",
   "officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
   "pct_highschool_or_greater", "pct_children_missing_parents", 
-  "pct_non_white", "Binge.drinking.prevalence", "pct_young_males", 
+  "pct_non_white", "per_capita_alc_taxes", "pct_young_males", 
   "persons_per_household", "persons_per_m2"
 )
 
@@ -297,27 +289,28 @@ summary_stats <- lapply(c(0,1), function(covid_indicatior){
     filter(post_covid == covid_indicatior)|>
   summarise(across(all_of(modeling_vars), ~ mean(.x, na.rm = TRUE)))
 
-  # drop sd columns for condensed table on slide
-  # sds <- acs_5_yearly_data |>
-  #   filter(post_covid == covid_indicatior)|>
-  #   summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
+  sds <- acs_5_yearly_data |>
+    filter(post_covid == covid_indicatior)|>
+    summarise(across(all_of(modeling_vars), ~ sd(.x, na.rm = TRUE)))
   
-  bind_rows(list(mean = means#, sd = sds
-                 ), .id = "stat")|>
+  bind_rows(list(mean = means, sd = sds), .id = "stat")|>
     pivot_longer(-stat, names_to = "variable", values_to = "value")|>
     pivot_wider(names_from = "stat")
   
 })|> bind_rows(.id = "year")|> 
   mutate(year = ifelse(year == "1", "pre", "post"))|>
-  pivot_wider(names_from = "year", values_from = c(mean#, sd
-                                                   ))
+  pivot_wider(names_from = "year", values_from = c(mean, sd))
 
 summary_stats <- left_join(summary_stats, pvals)|>
-  arrange(p.value)
+  arrange(p.value)|>
+  mutate(across(
+    where(is.numeric),
+    ~ formatC(.x, format = "f", digits = 5)
+  ))
 
-kable(summary_stats, format = "html", digits = 5,
-             caption = "Signifigance of changes in the mean values of Cesus variables")|>
-kable_styling("striped", font_size = 15) 
+kable(summary_stats, format = "html",
+             caption = "Values and significance of changes in variables of interest")|>
+  kable_styling("striped", font_size = font)
 ```
 :::
 ::::
@@ -348,9 +341,8 @@ crime_correlation <- lapply(setdiff(modeling_vars, target), function(var) {
   )
 }) |> bind_rows()|> arrange(p.value)
 
-kable(crime_correlation, format = "html", digits = 5,
-             caption = "Signifigance of correlation with crime rates")|>
-kable_styling("striped", font_size = 15) 
+kable(crime_correlation, format = "html", caption = "Significance of correlation with crime rates")|>
+  kable_styling("striped", font_size = font)  
 ```
 :::
 ::::
@@ -368,31 +360,29 @@ kable_styling("striped", font_size = 15)
 :::: column
 ::: {style="margin-top: 75px;"}
 ```{r full_model}
-# need to arrange data before cum sum
+acs_5_yearly_data <- acs_5_yearly_data|>
+                    mutate(crime_rate_sqrt = sqrt(crime_rate))
+
 acs_5_yearly_data <- acs_5_yearly_data|>arrange(post_covid) |>
   mutate(
     log_pct_non_white = log(pct_non_white),
     log_persons_per_m2 = log(persons_per_m2),
     log_officers = log(officers),
-    log_crime_rate = log(officers)
+    log_crime_rate = log(officers),
+    log_per_capita_alc_taxes = log(per_capita_alc_taxes)
   )
-
-# removed "pct_children_missing_parents", "msp_main_counties", "Binge.drinking.prevalence", 
-# "pct_young_males", "persons_per_household" due to insignfigance at the >.5 level
-# "pct_lessthan_5kincome" removed due to -.7 correlation with median income and being a faulty measure over time
-
-modeling_vars <- c("log_officers", "median_household_income_acs5", 
-  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2",
-  "reservations", "top_cities"
-)
 
 formula <- reformulate(modeling_vars, response = "crime_rate")
 
 # Fit models
-pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
-post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
+# pre_covid_model  <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 0))
+# post_covid_model <- lm(formula, data = acs_5_yearly_data |> filter(post_covid == 1))
+modeling_vars <- c( "median_household_income_acs5", "log_pct_non_white", "log_persons_per_m2",
+  "reservations", "log_per_capita_alc_taxes", "reservations:per_capita_migration", "log_pct_non_white"
+)
 
-full_formula <- reformulate(c(modeling_vars, "post_covid"), response = "crime_rate")
+full_formula <- reformulate(modeling_vars, response = "sqrt(crime_rate)")
+
 total_model  <- lm(full_formula, data = acs_5_yearly_data)
 
 # Helper: get both normal and robust stats
@@ -400,8 +390,8 @@ model_tidy_with_robust <- function(model) {
   # Regular (classical OLS) tidy
   normal <- tidy(model)
   
-  # Robust (HC3) tidy
-  robust_vcov <- vcovHC(model, type = "HC3")
+  # Robust (CR2) tidy
+  robust_vcov <- vcovCR(model, cluster = acs_5_yearly_data$county, type = "CR2")
   robust <- coeftest(model, vcov. = robust_vcov) |> tidy()
   
   # Combine both
@@ -413,15 +403,29 @@ model_tidy_with_robust <- function(model) {
     )
 }
 
-# set font size for tables
-font <- 15
-
-full_model <- model_tidy_with_robust(total_model)|> 
+# Combine all models 
+# uncomment code for before and after models to run 
+combined <- bind_rows(
+  # model_tidy_with_robust(pre_covid_model)  |> mutate(Model = "Pre-COVID"),
+  # model_tidy_with_robust(post_covid_model) |> mutate(Model = "Post-COVID"),
+  model_tidy_with_robust(total_model)       #|> mutate(Model = "Full Model")
+) |>
   mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
-  select(term, estimate, p.value)
+  select(#Model, 
+         term, estimate, std.error_normal, std.error_robust, p.value)|>
+  arrange(p.value)
 
-kbl(full_model, caption = "Full Model With Covid Indicator")|>
-  kable_styling("striped", full_width = FALSE, font_size = font)
+# Compute row ranges for grouped rows
+# pre_rows  <- which(combined$Model == "Pre-COVID")
+# post_rows <- which(combined$Model == "Post-COVID")
+# full_rows <- which(combined$Model == "Full Model")
+
+# Create the grouped kable table
+kbl(combined, caption = "Regression Models with Classical and Robust Standard Errors Against the Square Root of Crime Rates") |>
+  kable_styling("striped", full_width = FALSE, font_size = font) #|>
+  # group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
+  # group_rows("Post-COVID", min(post_rows), max(post_rows)) |>
+  # group_rows("Full Model", min(full_rows), max(full_rows))
 
 ```
 :::
@@ -437,27 +441,27 @@ kbl(full_model, caption = "Full Model With Covid Indicator")|>
 ::::: columns
 ::: column
 ```{r pre_model}
-# Combine model
-pre_covid <- model_tidy_with_robust(pre_covid_model)  |>
-  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
-  select(term, estimate, p.value)
-
-# Create the grouped kable table
-kbl(pre_covid, caption = "Pre Covid Model") |>
-  kable_styling("striped", full_width = FALSE, font_size = font)
+# # Combine model
+# pre_covid <- model_tidy_with_robust(pre_covid_model)  |>
+#   mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+#   select(term, estimate, p.value)
+# 
+# # Create the grouped kable table
+# kbl(pre_covid, caption = "Pre Covid Model") |>
+#   kable_styling("striped", full_width = FALSE, font_size = font)
 ```
 :::
 
 ::: column
 ```{r post_model}
-# Combine model
-post_covid <- model_tidy_with_robust(post_covid_model) |> 
-  mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
-  select(term, estimate, p.value)
-
-# Create the grouped kable table
-kbl(post_covid, caption = "Post Covid Model") |>
-  kable_styling("striped", full_width = FALSE, font_size = font)
+# # Combine model
+# post_covid <- model_tidy_with_robust(post_covid_model) |> 
+#   mutate(across(c(std.error_normal, std.error_robust, p.value), ~ round(., 3))) |>
+#   select(term, estimate, p.value)
+# 
+# # Create the grouped kable table
+# kbl(post_covid, caption = "Post Covid Model") |>
+#   kable_styling("striped", full_width = FALSE, font_size = font)
 ```
 :::
 :::::
@@ -468,9 +472,7 @@ kbl(post_covid, caption = "Post Covid Model") |>
 ::: column
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
-modeling_vars <- c("crime_rate", "log_officers", "median_household_income_acs5", "pct_lessthan_5kincome", 
-  "pct_highschool_or_greater", "log_pct_non_white", "log_persons_per_m2"
-)
+modeling_vars <- c("crime_rate_sqrt", "log_persons_per_m2", "pct_young_males")
 
 # difference across all of the data, add in a _diff to the end of the names too
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
@@ -484,7 +486,7 @@ modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")
 # fit linear model
 model_diff <- lm(
   formula = as.formula(
-    paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
+    paste("crime_rate_sqrt_diff ~", paste(modeling_vars_diff, collapse = " + "))
   ),
   data = acs_5_yearly_data_diff
 )
@@ -496,9 +498,10 @@ diff_tbl <- tidy(model_diff) |>
     std.error = round(std.error, 3),
     p.value   = round(p.value, 3)
   ) |>
-  select(term, estimate, p.value)
+  select(term, estimate, std.error, p.value)|>
+  arrange(p.value)
 
-kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
+kbl(diff_tbl, caption = "Regression Model for Differences in the Square Root of Crime Rate") |>
   kable_styling("striped", full_width = FALSE, font_size = font) |>
   group_rows("Difference Model", 1, nrow(diff_tbl))
 ```
@@ -508,22 +511,22 @@ kbl(diff_tbl, caption = "Regression Model for Differences in Crime Rate") |>
 ```{r model_metrics}
 # Compute model metrics
 model_metrics <- tibble(
-  Model    = c("Pre-COVID", "Post-COVID", "Full Model", "Difference Model"),
+  Model    = c("Full Model", "Difference Model"),
   R2       = c(
-    summary(pre_covid_model)$r.squared,
-    summary(post_covid_model)$r.squared,
+    # summary(pre_covid_model)$r.squared,
+    # summary(post_covid_model)$r.squared,
     summary(total_model)$r.squared,
     summary(model_diff)$r.squared
   ),
   Adj_R2   = c(
-    summary(pre_covid_model)$adj.r.squared,
-    summary(post_covid_model)$adj.r.squared,
+    # summary(pre_covid_model)$adj.r.squared,
+    # summary(post_covid_model)$adj.r.squared,
     summary(total_model)$adj.r.squared,
     summary(model_diff)$adj.r.squared
   ),
   RMSE     = c(
-    sqrt(mean(residuals(pre_covid_model)^2)),
-    sqrt(mean(residuals(post_covid_model)^2)),
+    # sqrt(mean(residuals(pre_covid_model)^2)),
+    # sqrt(mean(residuals(post_covid_model)^2)),
     sqrt(mean(residuals(total_model)^2)),
     sqrt(mean(residuals(model_diff)^2))
   )
