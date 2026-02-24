@@ -1,4 +1,7 @@
 project:
-  title: "Econometrics project"
+  type: website
+  output-dir: _site
 
-editor: source
+website:
+  title: "Minnesota Crime"
+  navbar: false

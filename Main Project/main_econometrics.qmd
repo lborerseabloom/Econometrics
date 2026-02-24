@@ -773,7 +773,7 @@ combined <- bind_rows(
 # full_rows <- which(combined$Model == "Full Model")
 
 # Create the grouped kable table
-kbl(combined, caption = "Regression Models with Classical and Robust Standard Errors Against the Square Root of Crime Rates") |>
+kbl(combined, caption = "Regression Model with Classical and Robust Standard Errors Against the Square Root of Crime Rates") |>
   kable_styling("striped", full_width = FALSE) #|>
   # group_rows("Pre-COVID",  min(pre_rows),  max(pre_rows)) |>
   # group_rows("Post-COVID", min(post_rows), max(post_rows)) |>
