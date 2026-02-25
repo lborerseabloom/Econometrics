@@ -11,13 +11,14 @@ alc_data <- readRDS("data/alc_data.rds")
 
 ### final crime data file with all variables ###
 crime_data <- crime_data|>
-  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), ~ifelse(is.na(.x), 0, .x)))|> # set NA values to 0
+  mutate(across(c(arson, assaults, burglary, gta, homicides, larceny, rape, robbery), 
+                ~ifelse(is.na(.x), 0, .x)))|> # set NA values to 0 if they didn't get caught the first time
   left_join(mapping, by = join_by(ori), relationship = "many-to-many")|> # join in mapping variables
   left_join(acs_1yr_ts, by = join_by(GEOID, year))|> # join to acs1 data by county and year
   left_join(acs_5yr_ts, by = join_by(GEOID, year), suffix = c("_acs1", "_acs5"))|> # join to acs5 data by county and year
   distinct(series, month, .keep_all = TRUE)|> # drop some duplicate rows left over
   group_by(month)|>
-  drop_na(homicides)|> # drop na homicide years, primarily from smaller depts early on in the data
+  drop_na(homicides)|> # drop na homicide years, primarily from smaller depts early on in the data - don't know why they aren't 0s
   ungroup()
 
 
@@ -56,7 +57,7 @@ mapping_yearly_data <- crime_data |>
   st_as_sf() # save as sf object for mapping
 
 
-### create final df for modeling using acs 1 data ###
+### create df for graphing using acs 1 data ###
 
 acs5_vars <- paste(names(vars),"_acs5", sep = "")
 acs1_vars <- paste(names(vars),"_acs1", sep = "")

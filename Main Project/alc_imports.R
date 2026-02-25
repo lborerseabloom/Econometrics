@@ -5,11 +5,12 @@ library(purrr)
 library(readxl)
 library(tidyverse)
 
+# files from MN Dept of Revenue
 files <- list.files("data/MN Liquor", full.names = TRUE)
 
 # bind all files together
 alc_tax <- map_dfr(files, function(file_path){
-  # use the two separate read methods in readxl
+  # use the two separate read methods in  for the two diff file types
   if (grepl(".xlsx$", file_path, ignore.case = TRUE)) {
     read_xlsx(file_path)
   } else {
@@ -17,62 +18,67 @@ alc_tax <- map_dfr(files, function(file_path){
   }
   
 })
-# drop useless columns
-#alc_tax <- alc_tax[,1:4] 
+# better names
 alc_tax <- rename(alc_tax, 
                   year=YEAR, 
                   county=`COUNTY LIQUOR SALES & TAX (ON & OFF-SALE)`, 
                   sales=`LIQUOR SALES`,
                   alc_taxes=`LIQUOR GROSS RECEIPTS TAX (AT 2.5%)`)|>
-  drop_na(year)|>
-  filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))|>
-  mutate(county = ifelse(county == "MCLEOD", "MC LEOD", county),
-         county = ifelse(county == "ST LOUIS", "ST. LOUIS", county))|>
-  mutate(year = as.integer(year))|>
-  # alc_tax should now have years*counties of rows, 16*87=1392 in this case
-  group_by(county)|>
-  complete(year = min(year):2024) |>
-  arrange(year, .by_group = TRUE)|>
-  # linear interpolation for 2024, using lm to predict 2024 from all years
-  # mutate(
-  #   sales = {
-  #     # fit the model
-  #     model <- lm(sales ~ year, data = pick(year), na.action = na.exclude)
-  #     # if na fill with models prediction
-  #     ifelse(
-  #       is.na(sales),
-  #       predict(model, newdata = data.frame(year = year)),
-  #       sales
-  #     )
-  #   }
-  # )
-  # carry forward 2022-2023 change for slope as linear interpolation isn't accurate
-  mutate(
-    # calculate slope
-    slope = alc_taxes - lag(alc_taxes),
-    
-    # avg slope over normally trended years
-    avg_slope = mean(
-      slope[(year %in% 2011:2019) | (year == 2023)],
-      na.rm = TRUE),
-    
-    # replace 2024 with that average + 2023
-    alc_taxes = if_else(
-      year == 2024 & is.na(alc_taxes),
-      alc_taxes[year == 2023] + avg_slope,
-      alc_taxes
-    )
-  ) |>
+drop_na(year)|>
+# drop non mn counties
+filter(! county %in% c("NON-MINNESOTA CO","MN UNKNOWN COUNTY"))|>
+# better names for merging
+mutate(county = ifelse(county == "MCLEOD", "MC LEOD", county),
+       county = ifelse(county == "ST LOUIS", "ST. LOUIS", county))|>
+mutate(year = as.integer(year))|>
+# alc_tax should now have years*counties of rows, 16*87=1392 in this case
+group_by(county)|>
+complete(year = min(year):2024) |>
+arrange(year, .by_group = TRUE)|>
+# linear interpolation for 2024, using lm to predict 2024 from all years
+# mutate(
+#   sales = {
+#     # fit the model
+#     model <- lm(sales ~ year, data = pick(year), na.action = na.exclude)
+#     # if na fill with models prediction
+#     ifelse(
+#       is.na(sales),
+#       predict(model, newdata = data.frame(year = year)),
+#       sales
+#     )
+#   }
+# )
+# carry forward 2022-2023 change for slope as linear interpolation isn't accurate
+# mutate(
+#   # calculate slope
+#   slope = alc_taxes - lag(alc_taxes),
+#   
+#   # avg slope over normally trended years
+#   avg_slope = mean(
+#     slope[(year %in% 2011:2019) | (year == 2023)],
+#     na.rm = TRUE),
+#   
+#   # replace 2024 with that average + 2023
+#   alc_taxes = if_else(
+#     year == 2024 & is.na(alc_taxes),
+#     alc_taxes[year == 2023] + avg_slope,
+#     alc_taxes
+#   )
+# ) |>
+#ungroup()|>
+# select(-slope, -avg_slope)
   ungroup()|>
-  select(-slope, -avg_slope)|>
-  mutate(adj_alc_taxes = priceR::afi(alc_taxes, year, "US", to_date = 2024))
-
-alc_tax|>
-  group_by(year)|>
-  summarise(adj_alc_taxes = sum(adj_alc_taxes))|>
-  ggplot(aes(x = year, y=adj_alc_taxes))+
-  geom_point()
-
+  # adjust for inflation in the US using data from the world bank
+  mutate(adj_alc_taxes = priceR::afi(alc_taxes, year, "US", to_date = 2023))|>
+  group_by(county)|>
+  # carry forward adjusted tax from 2023 as due to slope changes it is the best prediction
+  mutate(adj_alc_taxes = if_else(
+        year == 2024 & is.na(adj_alc_taxes),
+        adj_alc_taxes[year == 2023],
+        adj_alc_taxes))|>
+  ungroup()
+  
+# see what data looks like before saving to rds
 alc_tax|>
   group_by(year)|>
   summarise(adj_alc_taxes = sum(adj_alc_taxes))|>

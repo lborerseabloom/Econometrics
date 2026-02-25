@@ -11,6 +11,7 @@ from selenium.common.exceptions import StaleElementReferenceException, TimeoutEx
 
 def Scraper(file_name, example_file):
     # --- Setup Chrome with custom download folder ---
+    # this downloads folder might need to be moved after scraping
     download_dir = os.path.abspath("downloads")
     os.makedirs(download_dir, exist_ok=True)
 
@@ -22,7 +23,8 @@ def Scraper(file_name, example_file):
     driver.get("https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/explorer/crime/crime-trend")
 
     wait = WebDriverWait(driver, 20)
-    input("Press Enter to continue...") # Keeping the initial long sleep as it might be necessary for the page to fully load
+    # The initial long sleep is important as it is necessary for the page to fully load
+    input("Press Enter to continue...")
 
     # --- Open the dropdown to get the list of ORIs ---
     try:

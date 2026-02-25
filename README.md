@@ -1,6 +1,6 @@
 **Capstone Project\: Crime & Socioeconomic Analysis**
 
-- **Project**\: Cornell College capstone econometrics analysis examining FBI crime trends, ACS socioeconomic data, and oter factors to evaluate demographic relationships between crime in Minnesota and its traditonal sociological determinants over time and across COVID.
+- **Project**\: Cornell College capstone econometrics analysis examining FBI crime trends, ACS socioeconomic data, and other factors to evaluate demographic relationships between crime in Minnesota and its traditional sociological determinants over time and across COVID.
 - **Location**\: The main paper can be rendered from [Main Project/main_econometrics.qmd](Main%20Project/main_econometrics.qmd)\: see the repository structure below.
 
 **Project Contents**

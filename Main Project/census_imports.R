@@ -4,7 +4,7 @@ library(purrr)
 library(tidycensus)
 library(readr)
 
-# cache shape files to avoid slow downloads
+# cache shape files to avoid slow repeated downloads
 options(tigris_use_cache = TRUE)
 
 ### define variables to pull from census surveys ###
@@ -134,7 +134,7 @@ acs_5yr_ts <- acs_5yr_ts|>
 # join all of the data needed for mapping onto the main crime data
 mapping <- left_join(mapping, county_geometry)
 
-# use RDS to pass sf geometry without breaking write_csv
+# use RDS to pass sf geometry as it breaks the csv format
 saveRDS(vars, "data/vars.rds")
 saveRDS(mapping, "data/mapping.rds")
 saveRDS(acs_1yr_ts, "data/acs_1yr_ts.rds")
