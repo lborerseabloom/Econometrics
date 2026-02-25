@@ -4,6 +4,7 @@
 .RData
 .Ruserdata
 .RDataTmp/
+.RDataTmp
 
 # Quarto
 .quarto/
