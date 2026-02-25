@@ -1,6 +1,10 @@
-.Rproj.user
+# R / RStudio
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
-.RDataTmp
-/.quarto/
+.RDataTmp/
+
+# Quarto
+.quarto/
+.quarto/project-cache/
