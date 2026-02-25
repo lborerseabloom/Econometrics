@@ -24,5 +24,5 @@
 - **AI & notes**\: [data/ai_mappings.csv](data/ai_mappings.csv)\: csv mapping files for the joining of police department by county built using data found in [Relevant Literature/ORI Directory.pdf](Relevant%20Literature/ORI%20Directory.pdf). 
 
 **How to reproduce**
-- **Environment\:**\: Use R (version >= 4.0) with tidyverse, readr, and quarto for rendering reports. Python 3.x for the scraper.
-- **Typical workflow\:**\: run data import scripts in [Main Project/](Main%20Project/) to regenerate [data/](data/) objects, then render [Main Project/main_econometrics.qmd](Main%20Project/main_econometrics.qmd) to reproduce the report.
+- **Environment**\: Use R (version >= 4.0) with tidyverse, readr, and quarto for rendering reports. Python 3.x for the scraper.
+- **Typical workflow**\: run data import scripts in [Main Project/](Main%20Project/) to regenerate [data/](data/) objects, then render [Main Project/main_econometrics.qmd](Main%20Project/main_econometrics.qmd) to reproduce the report.
