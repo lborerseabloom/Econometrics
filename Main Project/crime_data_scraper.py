@@ -11,20 +11,40 @@ from selenium.common.exceptions import StaleElementReferenceException, TimeoutEx
 
 def Scraper(file_name, example_file):
     # --- Setup Chrome with custom download folder ---
-    # this downloads folder might need to be moved after scraping
-    download_dir = os.path.abspath("downloads")
+    # something in this selenium driver setup broke during the year and might break again
+    # I have no clue what it was but it was breaking downloads and it seems to be fixed now 2/25/26
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    download_dir = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "downloads"))
     os.makedirs(download_dir, exist_ok=True)
 
     options = webdriver.ChromeOptions()
-    prefs = {"download.default_directory": download_dir}
+    options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+    prefs = {
+        "download.default_directory": download_dir,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": True,
+        "profile.default_content_settings.popups": 0,
+    }
     options.add_experimental_option("prefs", prefs)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-notifications")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--disable-extensions")
+
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=options
+    )
+
+    wait = WebDriverWait(driver, 30)
+
     driver.get("https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/explorer/crime/crime-trend")
 
-    wait = WebDriverWait(driver, 20)
-    # The initial long sleep is important as it is necessary for the page to fully load
-    input("Press Enter to continue...")
+    input("Navigate to state, crime, and time range. Press Enter to continue...")
 
     # --- Open the dropdown to get the list of ORIs ---
     try:
@@ -75,13 +95,13 @@ def Scraper(file_name, example_file):
             menu_icon = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//nb-icon[@id='hr-menu-icon']/ancestor::button"))
             )
-            menu_icon.click()
+            driver.execute_script("arguments[0].click();", menu_icon)
 
             # --- Click "Download as CSV" ---
             download_item = wait.until(
                 EC.element_to_be_clickable((By.XPATH, "//li[@title='Download as CSV']"))
             )
-            download_item.click()
+            driver.execute_script("arguments[0].click();", download_item)
 
             # --- Wait for download to complete and rename ---
             timeout = 1.5
@@ -120,6 +140,6 @@ def Scraper(file_name, example_file):
     driver.quit()
 
 if __name__=="__main__":
-    file_name = input("Input file type:" )
-    example_file = input("Input file example:" )
+    file_name = input("Input the name of crime you will scrape:" )
+    example_file = input("Input an example name of the csvs to be downloaded:" )
     Scraper(file_name, example_file)
