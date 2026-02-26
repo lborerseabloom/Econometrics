@@ -43,13 +43,9 @@ alc_data <- readRDS("../data/alc_data.rds")
 <!--
 # PAPER TODOs
 # How to disscuss the relevance of current ICE activity in intro/conclsions
-# my github needs a real citation
-# facet wrap or something the previous distriution
+# general citations improvement
+
 # further LASSO discussion, citations, and equation
-# remove unlogged variables from LASSO and drop disscussion of variance and interaction
-# citations and better order to structural break tests
-# evaluate conditions of diff model and if sqrt is needed
-# better in text and bottom citations
 -->
 ```
 
@@ -133,7 +129,7 @@ kable(
 
 ### Data Description
 
-      The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in this [Github repository](https://github.com/lborerseabloom/Econometrics.git) to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository.\
+      The data being used in this study consists of two main parts, FBI crime and officer reports, as well as U.S Census Bureau county level ACS 5 year estimates. A collection of other sources were used to supplement and summarize these main sources as well. All of the data and code for this project is publicly available in this [Github repository](https://github.com/lborerseabloom/Econometrics.git) \[12\] to document the process of this research. Any graphs, tables, and results discussed in this paper can be replicated by following the steps detailed in the repository.\
       To start, the FBI's counts of crimes and officers were scraped from their website at a monthly level across all police agencies in Minnesota. As discussed in the literature review, James, Nathan, and Logan Rishard \[2\] highlight the intricacies to be aware of when using it to draw real world conclusions. Next, using the data from the National Law Enforcement Telecommunication Systems Originating Agency Identifier (NLETS ORI) directory \[4\] the local police agency data was mapped onto counties. As this data is a scanned PDF document Optical Character Recognition (OCR) was used to convert the data into machine readable text. This process does have some flaws due to the poor quality of the scan and a best effort was made to correct the minimal problems introduced into the data through this process. Additionally, as can be seen in the NLETS ORI directory some police agencies that operate federally or across the whole state cannot be tracked by county and are therefore left out of the crime counts. \
 
 ```{r homicides_time_series}
@@ -262,41 +258,43 @@ theme(
       Using ACS 1 year estimates of population, a yearly plot of crime rates and population reveals a consistent downward trend in crime rates per capita, dropping with a steeper slope than the increase in population. This pattern suggests that crime rates have been declining over time. However, consistent with the predictions in the study by Boman, J.H., Gallupe, O, \[3\] there is a local peak of crime in 2020 and 2021 during the pandemic lockdown. Interestingly, even before the pandemic there was still a sharp uptick in crime rates in 2019 suggesting other factors at play as well. Following this deviation, crime rates decline again by 2023, resuming the pre-pandemic trend. This indicates that the pandemic period represents a temporary disturbance rather than a lasting structural shift in Minnesotan crime trends.\
 
 ```{r homicides_time_series3}
+#| warning: false 
 # further analysis of normality and distribution of data
-acs_5_yearly_data|>
+a <- acs_5_yearly_data|>
   filter(year == 2019)|>
   ggplot(aes(x = sqrt(crime_rate), fill = as.factor(year))
          )+
   geom_density(alpha=.8,data = acs_5_yearly_data|>
                    filter(year == 2024))+
   geom_density(alpha=.8)+
-  geom_histogram(bins=50,alpha=.8,data = acs_5_yearly_data|>
-                   filter(top_cities == 1), color = "black")+
-  geom_density(aes(x=crime_rate, y = ..density.. * 0.2, fill = "Untransformed"), 
-               alpha = .25,
-               data = acs_5_yearly_data,
-               inherit.aes = FALSE)+
- annotate(
-    "text", x = Inf, y = 0,
-    label = "Most populated 5 cities each year highlighted",
-    hjust = 1.05, vjust = 1.5, size = 3
-  )+
+  # fake geom to update legend
+  geom_density(aes(x = 0, y = 0, fill = "Untransformed")) +
   theme_minimal()+
   scale_fill_manual(
   values = c("2024" = "#F8766D", "2019" = "#00BFC4", "Untransformed" = "grey"),
-  labels = c("Post COVID", "Pre COVID", "Untransformed 
- (Scaled Down)")
+  labels = c("Post COVID", "Pre COVID", "Untransformed")
   )+
   theme(axis.text.y  = element_blank(),
         axis.title.y = element_blank(),
-        legend.position = c(0.9, 0.9),
+        legend.position = c(0.85, 0.85),
         legend.background = element_rect(fill = alpha("white", 0.6)),
         legend.title = element_blank())+
-  labs(title = "Density of Minnesota Crime Rates by County by Year",
-       x = "Square Root of Crimes per Capita", y = NULL)
+  labs(x = "Square Root of Crimes per Capita", y = NULL)
+
+b <- ggplot(acs_5_yearly_data, aes(x=crime_rate))+
+  geom_density(fill = "grey", alpha = .8)+
+  theme_bw()+
+  theme(axis.text.y  = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks.y = element_blank())+
+  labs(x = "Untransformed \n Crimes per Capita", y = NULL)
+
+b+a+plot_annotation(title="Density of Minnesota Crime Rates by County by Year")+
+    plot_layout(widths = c(.5,2))
 ```
 
-      Looking at the general distribution of crime rates post COVID we see an approximately normal distribution after a square root transformation, this transformation will be used through the rest of the modeling process. However the pre COVID distribution remains slightly left skewed but not dramatically. The right tails of both pre and post COVID distributions hold the largest counties suggesting there could be a relationship between population density and crime rates. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential relationship between population density and crime.\
+      Looking at the general distribution of crime rates there is a clear lack of normality due to the right skew. However after a square root transformation, at leat in the post COVID values we see an approximately normal distribution. This transformation will be used through the rest of the modeling process to stabilize the variance of the response. However the pre COVID distribution remains slightly left skewed but not dramatically. The shape does not meaningfully change post COVID but there is a clear drop in crime rates able to be seen. This plot demonstrates again the dropping crime rates post COVID as well as a potential shift in the general distribution.\
 
 ```{r crime_and_pop_mapping}
 #| warning: false
@@ -537,7 +535,7 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 ```{r lasso_regression}
 set.seed(123)
 # everything removed manually from main model included here to be selected or not by lasso model
-modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
+modeling_vars <- c("log_per_capita_alc_taxes",
   "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
   "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
   "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",
@@ -546,7 +544,7 @@ modeling_vars <- c("officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes
   "edu_doctorate_acs5",  "households_total_acs5",  "households_income_lt5k_acs5",  
   "median_household_income_acs5", "pct_lessthan_5kincome",  "pct_highschool_or_greater",
   "pct_children_missing_parents",  "post_covid",  "top_cities",  "reservations",
-  "pct_non_white",  "pct_young_males",  "persons_per_household",  "persons_per_m2",
+  "pct_young_males",  "persons_per_household",
   "log_pct_non_white",  "log_persons_per_m2",  "log_officers",  
   "stayed_same_house_acs5", "from_same_county_acs5", 
   "from_diff_county_same_state_acs5", "from_diff_state_acs5",
@@ -597,65 +595,9 @@ as.matrix(coef(best_model))|>
   kbl(caption = "LASSO Regression Summary") |>kable_styling("striped", full_width = FALSE)
 ```
 
-      The LASSO results indicate that interactions involving population density, migration, alcohol taxation, and reservation status retain the largest non-zero coefficients. In particular, the interaction between reservations and per_capita_migration emerges as the most influential positive predictor, suggesting that migration is strongly associated with crime rates in counties containing reservations. Several additional interaction terms involving population density (persons_per_m2), household size, alcohol tax revenue, and policing levels also have non-zero coefficients, demonstrating the potential importance of population density and economic factors in explaining crime variation.\
-      While some untransformed demographic and household structure variables that were excluded from the primary regression models reappear in the LASSO results through interaction terms, their coefficients are comparatively small, indicating limited incremental predictive value once dominant spatial and economic factors are accounted for. Overall, the LASSO model supports the primary modeling strategy by confirming that population density, migration, alcohol-related revenue, reservation status, and urban density contain the most information for explaining county-level crime, while many alternative demographic measures contribute little additional explanatory power in a high-dimensional setting.\
-
-```{r persons_per_household_persons_per_m2}
-a <- acs_5_yearly_data |>
-  mutate(
-    pph_group = cut_number(persons_per_household, 4)
-  ) |>
-  ggplot(aes(
-    x = log_persons_per_m2,
-    y = crime_rate_sqrt,
-    color = pph_group
-  )) +
-  geom_point(alpha = 0.4) +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    color = "Persons per Household",
-    title = "Log of Persons per m²",
-    y = "Square Root of Crime Rate",
-    x = NULL
-  )+
-  theme_bw()+
-  theme(legend.position = "none")
-
-b <- acs_5_yearly_data |>
-  mutate(
-    pph_group = cut_number(persons_per_household, 4)
-  ) |>
-  ggplot(aes(
-    x = persons_per_m2,
-    y = crime_rate_sqrt,
-    color = pph_group
-  )) +
-  geom_point(alpha = 0.4) +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    color = "Persons per Household Groups",
-    title = "Standard Persons per m²",
-    y = "Square Root of Crime Rate",
-    x = ""
-  )+
-  theme_bw()+
-  theme(legend.position  = c(.45,-.25),       
-        legend.margin    = margin(2, 2, 2, 2),
-        legend.direction = "horizontal")+
-  guides(
-  color = guide_legend(
-    keyheight = unit(0.4, "cm"),
-    keywidth  = unit(0.8, "cm")
-  )
-)
-
-a/b+plot_layout(axis_titles = "collect")
-
-```
-
-      Potential interaction effects were then examined above using interaction plots constructed by grouping continuous moderators with approximately equal numbers of observations using the cut_number() function in ggplot2. This approach allows for the inspection of shifts in slope while maintaining sufficient observations within each group to avoid over weighting any of the sections.\
-      Inspection of the interaction between persons per square meter (persons_per_m2), and persons per household (persons_per_household) initially suggested shifts in slopes across household-size groups. However, closer examination revealed that this apparent interaction was driven largely by non-linearity in the untransformed population density measure. Notably, the lowest persons-per-household group exhibited a sharply different pattern that becomes much less pronounced after a logarithmic transformation. This provides strong evidence that the significance of the interaction in the unlogged specification was spurious and arose from misspecification rather than a meaningful relationship. A similar pattern was observed for the interaction between officers per 1000 people and the unlogged population density, where a large estimated interaction coefficient coincided with clear violations of linearity. Due to this both of these interactions do not appear in the model as they seem to largely rely on spurious correlation and lose significance once transformed.\
-      As can be seen below, the interaction between reservation status and per-capita net migration remained stable across specifications and did not exhibit the same modeling problems. The relationship between migration and crime is approximately linear within both reservation and non-reservation counties, and no transformation was required to achieve linearity or variance stabilization. This interaction also has a comparatively large coefficient in the LASSO model, supporting its relevance. As a result, the reservation-migration interaction term was retained in the final model as a substantively meaningful effect.\
+      The LASSO results indicate that interactions involving population density, migration, alcohol taxation, and reservation status retain the largest non-zero coefficients. In particular, the interaction between reservations and per_capita_migration emerges as the most influential predictor, suggesting that migration is strongly associated with crime rates in counties containing reservations. Several additional interaction terms involving population density (persons_per_m2), household size, alcohol tax revenue, and policing levels also have non-zero coefficients, demonstrating the potential importance of population density and economic factors in explaining crime variation.\
+      Overall, the LASSO model supports the primary modeling strategy by confirming that population density, migration, alcohol-related revenue, reservation status, and urban density contain the most information for explaining county-level crime, while many alternative demographic measures contribute little additional explanatory power in a high-dimensional setting.\
+      Despite the many interaction terms found to be meaningful by the LASSO model, the interaction between reservation status and per-capita net migration was the only one to remain stable across OLS specifications. The relationship between migration and crime is approximately linear within both reservation and non-reservation counties, and no transformation was required to achieve linearity or variance stabilization. This interaction also has a comparatively large coefficient in the LASSO model, supporting its relevance. As a result, the reservation-migration interaction term was retained in the final model as a meaningful effect.\
 
 ```{r reservations:per_capita_migration}
 acs_5_yearly_data |>
@@ -852,9 +794,8 @@ plot(total_model, 2)
 
 #### Structural Break Tests
 
-      This interpretation is further supported by the structural break tests presented below, which fail to detect meaningful parameter instability over time. Two complementary tests are employed: the Chow (M-fluctuation) test and the CUSUM test. The Chow test explicitly evaluates whether the regression coefficients differ across a predefined breakpoint, in this case the onset of the COVID-19 period. It tests the null hypothesis that the relationship between crime and its explanatory variables remains constant before and after the break. The results of the Chow test fail to reject this null hypothesis, indicating no statistically significant structural change in the estimated coefficients following the onset of COVID.\
-      The CUSUM test provides a more flexible assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether the estimated parameters drift outside their confidence bounds. In the present analysis, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period. This is seen in the failure to reject the null hypothesis that the variance in the estimated parameters is stable over time.\
-      Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.\
+      This interpretation is further supported by the structural break tests presented below, which fail to detect meaningful parameter instability over time. In order to test for significant changes in the relationships between crime and its predictors and in crime rates itself two complementary tests are used: the Chow (M-fluctuation) test and the CUSUM test. The Chow test explicitly evaluates whether the regression coefficients differ across a predefined breakpoint \[13\], in this case the onset of the COVID-19 period. It tests the null hypothesis that the residuals from fitting two models, one on either side of the break point, and fitting one model as we did do not differ significantly. If this test rejects the null hypothesis it would indicate a need for different estimates before and after covid which would signify a change in the relationships between crime and its determinants during this time. \
+      The CUSUM test provides an assessment of parameter stability by examining the cumulative sum of recursive residuals over time. Rather than testing for a break at a single known point, the CUSUM test detects gradual or unknown structural changes by identifying whether cumulative sum of the standardized residuals drift outside their confidence bounds defined by standard Brownian motion \[13\]. If the null hypothesis of this test is rejected it would suggest that during the modeling of crime there is a point at which the mean of the residuals differs from 0 and a separate model should be fit to explain this variance.\
 
 ::::: columns
 ::: column
@@ -890,16 +831,19 @@ print(cumsum_test)
 :::
 :::::
 
+      The results of the Chow test is a failure to reject the null hypothesis, indicating no statistically significant structural change in the estimated coefficients following the onset of COVID. Additionally, the CUSUM statistics remain well within the critical boundaries throughout the sample period even during the shift from pre to post COVID, suggesting stable regression parameters over this period. This is seen in the failure to reject the null hypothesis that the variance in the estimated parameters is stable over time. \
+      Together, these results provide strong evidence that the underlying relationship between crime and its sociological determinants has remained largely unchanged, even in the presence of the substantial social and economic disruption caused by the COVID-19 pandemic. While crime levels themselves may have temporarily increased, the structural form of the model and the influence of key explanatory variables appear to be stable over time, reinforcing the conclusion that COVID did not fundamentally alter the mechanisms linking crime to its traditional predictors.\
+
 #### Differenced Model Estimation
 
-      A model is now fit using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates across COVID. Using this approach, the only variables found to have a statistically significant relationship at the <.05 level on the change in crime rates is change in the population density measured in m^2^ as well as the change in the proportion of young males in the population. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. The borderline significance of young males in this case seems to be a type 1 error, especially due to its high lack of significance in other models. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.\
+      A model is now fit using the difference between pre and post COVID to see if any of the changes in explanatory variables are associated with a change in crime rates across COVID. Using this approach, the only variables found to have a statistically significant relationship at the <.05 level on the change in crime rates is change in the population density measured in m^2^ as well as the change in the heterogeneity of the population. The negative coefficient suggests that counties experiencing increases in population density over this period tended to see relative declines in crime rates, while counties with decreasing density experienced relative increases. The significance of percent non white in this case seems to be a type 1 error, especially due to its high lack of significance in other models. No other changes in variables were found to be statistically significant predictors of changes in crime rates, indicating that much of the observed variation in crime across counties during this period is not explained by concurrent changes in these factors.\
       Fitting the model of these differences defined as:
 $$
 \begin{aligned}
-\sqrt{crime\_rate\_post} - \sqrt{crime\_rate\_pre} 
+{crime\_rate\_post} - {crime\_rate\_pre} 
 &= \hat{\beta}_0
 + \hat{\beta}_1 \, (\log(persons\_per\_m2\_post) - \log(persons\_per\_m2\_pre)) + \\
-&\quad \hat{\beta}_2 \, (pct\_young\_males\_post - pct\_young\_males\_pre) + \varepsilon
+&\quad \hat{\beta}_2 \, (\log(pct\_non\_white\_post) - \log(pct\_non\_white\_pre)) + \varepsilon
 \end{aligned}
 $$
 
@@ -907,7 +851,7 @@ $$
 
 ```{r differenced_data}
 # using only variables that can be differenced, look at a first difference linear model
-modeling_vars <- c("crime_rate_sqrt", "log_persons_per_m2", "pct_young_males")
+modeling_vars <- c("crime_rate", "log_persons_per_m2", "log_pct_non_white")
 
 # difference across all of the data, add in a _diff to the end of the names too
 acs_5_yearly_data_diff <- acs_5_yearly_data|>
@@ -921,7 +865,7 @@ modeling_vars_diff <- paste0(modeling_vars[-1], "_diff")
 # fit linear model
 model_diff <- lm(
   formula = as.formula(
-    paste("crime_rate_sqrt_diff ~", paste(modeling_vars_diff, collapse = " + "))
+    paste("crime_rate_diff ~", paste(modeling_vars_diff, collapse = " + "))
   ),
   data = acs_5_yearly_data_diff
 )
@@ -946,7 +890,7 @@ kbl(diff_tbl, caption = "Regression Model for Differences in the Square Root of 
 ```{r}
 #| eval: FALSE
 # do i really need this too, feel like i get the point across
-modeling_vars <- c("crime_rate_sqrt", "median_household_income_acs5", "log_pct_non_white", 
+modeling_vars <- c("crime_rate", "median_household_income_acs5", "log_pct_non_white", 
                     "log_persons_per_m2", "log_per_capita_alc_taxes", "pct_young_males")
 
 # difference across all of the data, add in a _diff to the end of the names too
@@ -958,7 +902,7 @@ acs_5_yearly_data_diff <- acs_5_yearly_data|>
 modeling_vars <- c( "median_household_income_acs5_diff", "log_pct_non_white_diff", 
                     "log_persons_per_m2_diff", "log_per_capita_alc_taxes_diff", "pct_young_males_diff")
 
-target<-"crime_rate_sqrt_diff"
+target<-"crime_rate_diff"
 
 acs_5_yearly_data_diff |>
   pivot_longer(
@@ -1021,13 +965,13 @@ kbl(diff_model_metrics
     ) |>kable_styling("striped", full_width = FALSE)
 ```
 
-      The differenced LASSO model also only selects the population density measure, proportion of young males, and percent non-white. The percent non-white variable remains relatively insignificant (p=.185) in the OLS regression. The two other variables are estimated again with a negative coefficients showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for young males remains much lower than for population density further showcasing its potential invalidity as a predictor of crime.\
+      The differenced LASSO model also only selects the population density measure and percent non-white. The two variables are estimated again with coefficients in the same direction showing them as the only potentially meaningful predictors among these traditional sociological factors for explaining the changes in crime rates over COVID. Again the coefficient for percent non white remains much lower than for population density further showcasing its potential invalidity as a predictor of crime.\
 
 ```{r diff_lasso}
 set.seed(123)
 # everything removed manually from main model included here to be selected or not by lasso model except indicator variables that do not change 
 
-modeling_vars_diff <- c("crime_rate_sqrt", "officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
+modeling_vars_diff <- c("crime_rate", "officers", "log_per_capita_alc_taxes", "per_capita_alc_taxes",
   "area_m2",  "male_15_19_acs5",  "male_20_24_acs5",
   "total_population_acs5",  "white_population_acs5",  "children_total_acs5",
   "children_w_mother_only_acs5",  "children_w_father_only_acs5",  "children_no_parents_acs5",
@@ -1052,11 +996,11 @@ acs_5_yearly_data_diff <- acs_5_yearly_data|>
 modeling_vars_diff <- paste0(modeling_vars_diff[-1], "_diff") 
 
 # variables for modeling
-diff_lasso_formula <- reformulate(modeling_vars_diff, response = "crime_rate_sqrt_diff")
+diff_lasso_formula <- reformulate(modeling_vars_diff, response = "crime_rate_diff")
 
 x <- model.matrix(diff_lasso_formula, data = acs_5_yearly_data_diff)[, -1]
 
-y <- acs_5_yearly_data_diff$crime_rate_sqrt_diff
+y <- acs_5_yearly_data_diff$crime_rate_diff
 
 # LASSO with cross-validation
 lasso_model <- cv.glmnet(
@@ -1138,4 +1082,10 @@ as.matrix(coef(best_model))|>
 
 \[11\] Red Lake Reservation - Minnesota Indian Affairs Council
 <https://mn.gov/indian-affairs/tribal-nations-in-minnesota/miskwaagamiiwi-zaagaiganing-red-lake-nation.jsp>
+
+\[12\] Main Project GitHub Repository
+<https://github.com/lborerseabloom/Econometrics.git>
+
+\[13\] strucchange: An R Package for Testing for Structural Change in Linear Regression Models
+<https://www.jstatsoft.org/article/view/v007i02>
 :::
