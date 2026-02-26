@@ -1,1 +1,11 @@
-/.quarto/
+# R / RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.RDataTmp/
+.RDataTmp
+
+# Quarto
+.quarto/
+.quarto/project-cache/
