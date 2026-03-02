@@ -531,7 +531,18 @@ ggplot(aes(x = value, y = sqrt(.data[[target]]), colour = as.factor(year))) +
 #### LASSO Estimation and Variable Seclection
 
       To further assess the validity of these variable selection decisions and to identify any potentially omitted predictors or interaction effects, a LASSO regression was fit using the full set of available variables and all interaction terms. This model provides an additional perspective on the relative importance of the full set of potential explanatory variables. Unlike other traditional regressions, which rely on statistical significance conditional on a specified model, the LASSO model penalizes coefficient size and shrinks less informative variables exactly to zero. As a result, variables that remain in the model and have estimated coefficients can be interpreted as those with the strongest predictive relationships with crime rates in a high-dimensional setting. Additionally as the LASSO model relies on normalized predictor values all of the magnitudes of the coefficients can be directly compared and interpreted as variable importance. These factors make it a useful tool in variable selection, as all unimportant variables will have their coefficients set to 0 or near 0 and dropped automatically.\
-      Formally, the LASSO estimation solves an optimization problem in which the sum of squared residuals is minimized subject to an L1 penalty on the absolute values of the regression coefficients. This penalty introduces a bias–variance tradeoff by shrinking coefficient estimates toward zero in exchange for lower variance and improved predictive performance. The L1 penalty is particularly important because, unlike in ridge regression, it allows the model to select a subset of the predictors rather than merely shrinking all coefficients. The strength of the penalty parameter is chosen via cross-validation, balancing model fit against complexity. In this setting, LASSO is especially well suited for evaluating a the large number of correlated socioeconomic predictors and interaction terms, where traditional OLS estimation suffers from collinearity and overfitting [@fonti2017].\
+      LASSO Regression is defined as: \
+$$
+min_\beta \left(\sum^n_{i=1}(y_i-\hat{y}_i)^2 + \lambda\sum^p_{j=1} |\beta_j|\right)
+$$
+      Where: \
+      $y_i$       = the observed response value \
+      $\hat{y}_i$ = the predicted response value \
+      $\beta_j$   = the regression coefficent for predictor j \
+      $\lambda$   = the regularization parameter determining the strength of the penalty \
+      $p$         = the number of parameters \
+      \
+      Formally, the LASSO estimation solves the optimization problem in which the sum of squared residuals is minimized subject to an L1 penalty on the absolute values of the regression coefficients. This penalty introduces a bias–variance tradeoff to ordinary least squares by shrinking coefficient estimates toward zero in exchange for lower variance and improved predictive performance. The L1 penalty is particularly important because, unlike in ridge regression, the absolute value of $\beta_j$ allows the model to set some of the predictors to 0 rather than merely shrinking their coefficients. The strength of the regularization parameter $\lambda$ is chosen via 10 fold cross-validation, balancing model fit against complexity. In this setting, LASSO is especially well suited for evaluating a large number of correlated socioeconomic predictors and interaction terms, where traditional OLS estimation suffers from collinearity and overfitting [@fonti2017].\
 
 ```{r lasso_regression}
 set.seed(123)
@@ -1047,4 +1058,4 @@ as.matrix(coef(best_model))|>
 
 ### Final Summary
 
-      Overall, the pandemic produced a noticeable, short-lived rise in some serious offenses, but did not fundamentally reshape the cross-county relationships between serious crime and a county’s socioeconomic and spatial characteristics. Income inequality and urban density remain the dominant, stable predictors of county level crime in Minnesota. Many of the commonly discussed sociological measures explain little additional cross-county variation once these structural factors are accounted for.\
+      Overall, the pandemic produced a noticeable, short-lived rise in some serious offenses, but did not fundamentally reshape the cross-county relationships between serious crime and a county’s socioeconomic and spatial characteristics. Income inequality and urban density remain the dominant, stable predictors of county level crime in Minnesota. Many of the commonly discussed sociological measures explain little additional cross-county variation once these structural factors are accounted for. However the impact of migration into reservation counties emerged as a very meaningful factor in predicting crime and builds on the previous studies findings showing that crime across Minnesota counties needs to account for the impact of tribal land and migration into it. \
