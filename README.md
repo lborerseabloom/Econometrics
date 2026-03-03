@@ -21,4 +21,4 @@
 
 **How to reproduce** - **Environment**: Use R (version \>= 4.0) with tidyverse, readr, and quarto for rendering reports.
 Python 3.x for the scraper.
-- **Typical workflow**: run data import scripts in [Main Project/](Main%20Project/) to regenerate [data/](data/) objects, then render [Main Project/main_econometrics.qmd](Main%20Project/main_econometrics.qmd) to reproduce the report.
+- **Typical workflow**: To reproduce the data from the import scripts in [data/](data/) objects, create a project in the base directory of the project or else the relative file paths will be off. To produce the final report render [Main Project/main_econometrics.qmd](Main%20Project/main_econometrics.qmd). 
