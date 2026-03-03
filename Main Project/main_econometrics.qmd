@@ -41,14 +41,6 @@ crime_data <- readRDS("../data/crime_data_merged.rds")
 alc_data <- readRDS("../data/alc_data.rds")
 ```
 
-```{=html}
-<!--
-# PAPER TODOs
-# relevance of current ICE activity in intro/conclsions?
-# further LASSO equation
--->
-```
-
 ::: {style="text-align: center; font-size: 21pt;"}
 **Minnesota Crime: Patterns Over Time and Across COVID**
 
@@ -60,7 +52,7 @@ Advised by Dr. Tyler George
 
 Cornell College
 
-Feb x 2026
+Mar 3 2026
 :::
 
 ### Abstract
